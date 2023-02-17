@@ -33,12 +33,6 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 module.exports = {
   solidity: "0.8.16",
   defaultNetwork: NETWORK,
-  abiExporter: {
-    path: './abi',
-    runOnCompile: true,
-    clear: true, // delete old files before export
-    flat: true, // all abi json files directly under path
-  },
   networks: {
     hardhat: {},
     mainnet: {
