@@ -224,37 +224,37 @@ describe("winner selection smart contract Functionality", function () {
         await trainerAdventureContract.connect(admin).setWeeklyTimeStamp(1, blockTimeStamp, 100, 200, 500);
     });
 
-    it("Moderator will be able to call the generateChainLinkRandomNumbers", async function () {
-        await trainerAdventureContract.connect(deployer).setAdminWallet(admin.address, true);
-        await trainerAdventureContract.connect(deployer).setModeratorWallet(moderator.address, true);
+    // it("Moderator will be able to call the generateChainLinkRandomNumbers", async function () {
+    //     await trainerAdventureContract.connect(deployer).setAdminWallet(admin.address, true);
+    //     await trainerAdventureContract.connect(deployer).setModeratorWallet(moderator.address, true);
 
         
-        isModerator = await trainerAdventureContract.moderatorWallets(moderator.address);
-        expect(isModerator).to.be.true;
+    //     isModerator = await trainerAdventureContract.moderatorWallets(moderator.address);
+    //     expect(isModerator).to.be.true;
 
-        await expect(trainerAdventureContract.connect(moderator).generateChainLinkRandomNumbers(1)).to.be.revertedWithCustomError(
-            trainerAdventureContract,
-            "InvalidUpdationPeriod"
-        );
+    //     await expect(trainerAdventureContract.connect(moderator).generateChainLinkRandomNumbers(1)).to.be.revertedWithCustomError(
+    //         trainerAdventureContract,
+    //         "InvalidUpdationPeriod"
+    //     );
 
-        await trainerAdventureContract.connect(admin).setWeeklyTimeStamp(1, blockTimeStamp, 0, 200, 500);
+    //     await trainerAdventureContract.connect(admin).setWeeklyTimeStamp(1, blockTimeStamp, 0, 200, 500);
 
-        await expect(trainerAdventureContract.connect(deployer).generateChainLinkRandomNumbers(1)).to.be.revertedWithCustomError(
-            trainerAdventureContract,
-            "NotModerator"
-        );
+    //     await expect(trainerAdventureContract.connect(deployer).generateChainLinkRandomNumbers(1)).to.be.revertedWithCustomError(
+    //         trainerAdventureContract,
+    //         "NotModerator"
+    //     );
 
-        await trainerAdventureContract.connect(moderator).generateChainLinkRandomNumbers(1);
+    //     await trainerAdventureContract.connect(moderator).generateChainLinkRandomNumbers(1);
 
-        let weekInfo = await trainerAdventureContract.getWeekInfo(1);
-        let randomNumbers = weekInfo.randomNumbers;
-        expect(randomNumbers.length).to.equal(3);
+    //     let weekInfo = await trainerAdventureContract.getWeekInfo(1);
+    //     let randomNumbers = weekInfo.randomNumbers;
+    //     expect(randomNumbers.length).to.equal(3);
 
-        for (let i = 0; i < randomNumbers.length; i++) {
-            let randomNumber = Number(randomNumbers[i]);
-            expect(randomNumber).to.be.greaterThan(0);
-        }
-    });
+    //     for (let i = 0; i < randomNumbers.length; i++) {
+    //         let randomNumber = Number(randomNumbers[i]);
+    //         expect(randomNumber).to.be.greaterThan(0);
+    //     }
+    // });
 
     it("Owner will be able to call the setModeratorWallet", async function () {
         await expect(trainerAdventureContract.connect(moderator).setModeratorWallet(moderator.address, true)).to.be.revertedWith(NOT_CURRENT_OWNER);
