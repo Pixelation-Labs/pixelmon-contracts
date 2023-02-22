@@ -43,11 +43,7 @@ using Strings for uint256;
 /// @dev This is a ERC1155 token token standard smart contract
 /// @dev Using Ownable modifiers for configuration methods
 /// @dev Using ReentrancyGuard for mint and mintBatch method 
-contract PixelmonTrainerGear is
-    ERC1155,
-    Ownable,
-    ReentrancyGuard
-{
+contract PixelmonTrainerGear is ERC1155, Ownable, ReentrancyGuard {
     /// @notice Data structure for holding each type token information
     /// @param tokenName token name for a specific token Id
     /// @param maximumTokenSupply Maximum amount of a token Id allowed to mint
@@ -80,6 +76,7 @@ contract PixelmonTrainerGear is
 
     /// @notice Total of token ID
     uint256 public totalToken = 0;
+
     /// @notice Sum of total supply for each token
     uint256 public maximumTokenSupply = 0;
 
@@ -118,9 +115,7 @@ contract PixelmonTrainerGear is
 
     /// @notice Check whether an address has permission to mint
     modifier onlyMinter() {
-        if (
-            !minterList[msg.sender]
-        ) {
+        if (!minterList[msg.sender]) {
             revert InvalidMinter();
         }
         _;
@@ -128,9 +123,7 @@ contract PixelmonTrainerGear is
 
     /// @notice Check whether an address has permission to transfer
     modifier allowedToTransfer() {
-        if (
-            !isAllowedToTransfer[msg.sender]
-        ) {
+        if (!isAllowedToTransfer[msg.sender]) {
             revert NotAllowedToTransfer();
         }
         _;
@@ -168,45 +161,27 @@ contract PixelmonTrainerGear is
     constructor(string memory _baseURI) ERC1155("") {
         baseURI = _baseURI;
 
-        addTokenInfo("Helm 1", 150);
-        addTokenInfo("Helm 2", 150);
-        addTokenInfo("Helm 3", 150);
-        addTokenInfo("Helm 4", 150);
+        addTokenInfo("Helm 1", 200);
+        addTokenInfo("Helm 2", 200);
+        addTokenInfo("Helm 3", 200);
+        addTokenInfo("Helm 4", 200);
 
-        addTokenInfo("Necklace 1", 150);
-        addTokenInfo("Necklace 2", 150);
-        addTokenInfo("Necklace 3", 150);
-        addTokenInfo("Necklace 4", 150);
+        addTokenInfo("Armor 1", 200);
+        addTokenInfo("Armor 2", 200);
+        addTokenInfo("Armor 3", 200);
+        addTokenInfo("Armor 4", 200);
 
-        addTokenInfo("Upper Body Armor 1", 150);
-        addTokenInfo("Upper Body Armor 2", 150);
-        addTokenInfo("Upper Body Armor 3", 150);
-        addTokenInfo("Upper Body Armor 4", 150);
-
-        addTokenInfo("Lower Body Armor 1", 150);
-        addTokenInfo("Lower Body Armor 2", 150);
-        addTokenInfo("Lower Body Armor 3", 150);
-        addTokenInfo("Lower Body Armor 4", 150);
-
-        addTokenInfo("Boots 1", 150);
-        addTokenInfo("Boots 2", 150);
-        addTokenInfo("Boots 3", 150);
-        addTokenInfo("Boots 3", 150);
-
-        addTokenInfo("Weapon 1", 150);
-        addTokenInfo("Weapon 2", 150);
-        addTokenInfo("Weapon 3", 150);
-        addTokenInfo("Weapon 4", 150);
+        addTokenInfo("Weapon 1", 200);
+        addTokenInfo("Weapon 2", 200);
+        addTokenInfo("Weapon 3", 200);
+        addTokenInfo("Weapon 4", 200);
     }
 
     /// @notice Sets information about specific token
     /// @dev It will set token ID, token name, maximum supply, and token type
     /// @param _tokenName Name of the token
     /// @param _maximumSupply The maximum supply for the token
-    function addTokenInfo(
-        string memory _tokenName,
-        uint256 _maximumSupply
-    ) public onlyOwner {
+    function addTokenInfo(string memory _tokenName, uint256 _maximumSupply) public onlyOwner {
         unchecked {
             maximumTokenSupply += _maximumSupply;
             totalToken++;
@@ -224,11 +199,7 @@ contract PixelmonTrainerGear is
     /// @dev This function can only be executed by the contract owner
     /// @param _tokenId Token ID
     /// @param _maximumTokenSupply Token new maximum supply
-    function updateTokenSupply(uint256 _tokenId, uint256 _maximumTokenSupply)
-        external
-        onlyOwner
-        validTokenId(_tokenId)
-    {
+    function updateTokenSupply(uint256 _tokenId, uint256 _maximumTokenSupply) external onlyOwner validTokenId(_tokenId) {
         if (tokenCollections[_tokenId].totalMintedTokenAmount > _maximumTokenSupply) {
             revert InvalidInput();
         }
@@ -239,11 +210,7 @@ contract PixelmonTrainerGear is
     /// @dev This function can only be executed by the contract owner
     /// @param _minter A valid ethereum address
     /// @param _flag The permission to mint. 'true' means allowed
-    function setMinterAddress(address _minter, bool _flag)
-        external
-        onlyOwner
-        validAddress(_minter)
-    {
+    function setMinterAddress(address _minter, bool _flag) external onlyOwner validAddress(_minter) {
         minterList[_minter] = _flag;
     }
 
@@ -251,21 +218,14 @@ contract PixelmonTrainerGear is
     /// @dev This function can only be executed by the contract owner
     /// @param _wallet A valid ethereum address
     /// @param _flag The permission to transfer. 'true' means allowed
-    function setAllowedToTransfer(address _wallet, bool _flag)
-        external
-        onlyOwner
-        validAddress(_wallet)
-    {
+    function setAllowedToTransfer(address _wallet, bool _flag) external onlyOwner validAddress(_wallet) {
         isAllowedToTransfer[_wallet] = _flag;
     }
 
     /// @notice This method is for activate/deactivate minting functionality
     /// @dev This function can only be executed by the contract owner
     /// @param _flag New minting status
-    function setMintingStatus(bool _flag)
-        external
-        onlyOwner
-    {
+    function setMintingStatus(bool _flag) external onlyOwner {
         isMintingActive = _flag;
     }
 
@@ -312,12 +272,7 @@ contract PixelmonTrainerGear is
 
         _mintBatch(_receiver, _tokenIds, _amounts, "");
         
-        emit BatchPixelmonTrainerGearMint(
-            msg.sender,
-            _receiver,
-            _tokenIds,
-            _amounts
-        );
+        emit BatchPixelmonTrainerGearMint(msg.sender, _receiver, _tokenIds, _amounts);
     }
 
     /// @notice Mint token
@@ -355,12 +310,7 @@ contract PixelmonTrainerGear is
 
         _mint(_receiver, _tokenId, _amount, "");
         
-        emit PixelmonTrainerGearMint(
-            msg.sender,
-            _receiver,
-            _tokenId,
-            _amount
-        );
+        emit PixelmonTrainerGearMint(msg.sender, _receiver, _tokenId, _amount);
     }
 
     /// @notice Wallets that allowed to transfer only can use this method
@@ -406,20 +356,12 @@ contract PixelmonTrainerGear is
     /// @notice Appends token ID to base URL
     /// @param _tokenId The token ID
     function uri(uint256 _tokenId) public view override returns (string memory) {
-        return
-            bytes(baseURI).length > 0
-                ? string(abi.encodePacked(baseURI, _tokenId.toString()))
-                : "";
+        return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, _tokenId.toString())) : "";
     }
 
     /// @notice Get information from specific token ID
     /// @param _tokenId Token ID
-    function getTokenInfo(uint256 _tokenId)
-        external
-        view
-        validTokenId(_tokenId)
-        returns (TokenInfo memory tokenInfo)
-    {
+    function getTokenInfo(uint256 _tokenId) external view validTokenId(_tokenId) returns (TokenInfo memory tokenInfo) {
         tokenInfo = tokenCollections[_tokenId];
     }
 
@@ -428,8 +370,6 @@ contract PixelmonTrainerGear is
     /// @param _value value to be incremented, should not overflow 2**256 - 1
     /// @return incremented value
     function _uncheckedInc(uint256 _value) internal pure returns (uint256) {
-        unchecked {
-            return _value + 1;
-        }
+        unchecked { return _value + 1; }
     }
 }

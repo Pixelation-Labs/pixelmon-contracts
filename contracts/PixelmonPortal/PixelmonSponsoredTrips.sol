@@ -113,7 +113,7 @@ contract PixelmonSponsoredTrips is ERC1155, Ownable, ReentrancyGuard {
 
     ///@notice Burn the caller's token
     ///@param _amount Amount of token to burn
-    function burn(uint256 _amount) external {
+    function burn(uint256 _amount) external virtual {
         if (!isBurningAllowed) {
             revert BurningIsDisabled();
         }
