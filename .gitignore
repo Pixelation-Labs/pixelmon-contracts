@@ -118,3 +118,5 @@ artifacts
 
 demo-smart-contract/
 abi
+
+.DS_Store
