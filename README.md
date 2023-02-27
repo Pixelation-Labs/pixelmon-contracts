@@ -16,6 +16,14 @@ This project contains all the smart contract of Pixelmon. It contains several pi
  - Pixelmon Trips
  - Pixelmon Trainer Gear
 
+## mainnet SC link
+1. Pixelmon Smart Contract:	https://etherscan.io/address/0x32973908faee0bf825a343000fe412ebe56f802a
+2. Pixelmon Staking Smart Contract: 	https://etherscan.io/address/0x217b53f8a059a5768aef26034b4a4ed2018d70f2
+3. Serum Smart Contract:	https://etherscan.io/address/0xadae0ddaf90170a44adebcfb8eede12041d13220
+4. Pixelmon Trainer Smart Contract:	https://etherscan.io/address/0x8A3749936E723325C6b645a0901470cD9E790B94
+5. Trainer Adventure:	https://etherscan.io/address/0xb758310c8a396b9608a587B6D6977A505fF27B17
+6. Trainer Gear: 	https://etherscan.io/address/0x05A6528663278f51f9cc22D0bb3ca0E1e0a3Ae2f
+7. Sponsored Trips:	https://etherscan.io/address/0xd6345673f53426db467f9376e4545d8d36f6aae8
 
 ## Software Requirements
 To deploy this smart contract in the Mainnet or in the Goerli test net the following tools need to be installed in the computer.
