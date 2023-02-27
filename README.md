@@ -6,6 +6,16 @@ Pixelmon contracts
     2. [Pixelmon Staking](https://github.com/Pixelation-Labs/pixelmon-contracts/blob/initial-setup/AuditReport/Pixelmon%20Staking%20Smart%20Contract%20Audit%20by%20Solidity%20Finance.pdf)
     3. [Trainer Adventure + Trainer Gear + Sponsored Trips](https://github.com/Pixelation-Labs/pixelmon-contracts/blob/initial-setup/AuditReport/PixelmonTrainer_audit_report.pdf)
 
+# About
+This project contains all the smart contract of Pixelmon. It contains several pixelmon token collections, Staking and adventure busines smart contract. Smart contract it contains are:
+ - Pixelmon NFT
+ - Pixelmon Staking
+ - Pixelmon Trainer
+ - Pixelmon Trainer Adventure
+ - Pixelmon Serum
+ - Pixelmon Trips
+ - Pixelmon Trainer Gear
+
 
 ## Software Requirements
 To deploy this smart contract in the Mainnet or in the Goerli test net the following tools need to be installed in the computer.
