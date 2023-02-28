@@ -7,8 +7,12 @@
   "license": "liquidx",
   "scripts": {
     "compile": "npx hardhat compile",
+    "test": "npx hardhat test --network hardhat",
     "test:coverage": "npx hardhat coverage --network hardhat",
+    "test:prototype:token": "npx hardhat test --network hardhat test/PrototypeToken/prototypeToken.js",
     "deploy:contract:hardhat": "npx hardhat run ./scripts/deploy.Contract.js --network hardhat",
+    "deploy:prototype:contract:hardhat": "npx hardhat run ./scripts/PrototypeToken/deploy.contract.js --network hardhat",
+    "deploy:prototype:contract:goerli": "npx hardhat run ./scripts/PrototypeToken/deploy.contract.js --network goerli",
     "publish:contract:goerli": "npx hardhat verify --network goerli",
     "publish:contract:mainnet": "npx hardhat verify --network mainnet"
   },

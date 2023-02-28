@@ -54,7 +54,13 @@ yarn install
 yarn compile
 ```
 
-6. Run unit test
+6. Run unit test without coverage
+```
+yarn test
+```
+
+
+6. Run unit test with coverage
 ```
 yarn test:coverage
 ```
