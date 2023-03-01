@@ -69,6 +69,12 @@ yarn test:coverage
 
 # Prototype Token(Coin) 
 This is a prototype smart contract for implementing coin. The ERC20 token standard has been used to implement this smart contract which is the most used token standrad for most of the well known coin in Ethereum network.
+ERC20 token does not have any token ID. In one Smart contract, there exist only one token type. And user have the balance. For example:
+- Wallet 1 has balance of Prototype = 100
+- Wallet 2 has balance of Prototype = 30.7
+- Wallet 3 has balance of Prototype = 79.5
+- Total Supply = 210.2
+**Note: The Smart contract only maintain the record of total supply and the amount of individual holders**
 
 ## About ERC20 Token
 ERC-20 is the technical standard for fungible tokens created using the Ethereum blockchain. ERC20 token contract keeps track of fungible tokens: any one token is exactly equal to any other token; no tokens have special rights or behavior associated with them. This makes ERC20 tokens useful for things like a medium of exchange currency, voting rights, staking, and more. there are more than 400,000 tokens on Ethereum with some very well known such as:
@@ -81,13 +87,6 @@ ERC-20 is the technical standard for fungible tokens created using the Ethereum 
 7. Aave (AAVE)
 8. Wrapped Bitcoin (WBTC)  
 9. Chain Link Token (LINK)
-
-ERC20 token does not have any token ID. In one Smart contract, there exist only one token type. And user have the balance. For example:
-- Wallet 1 has balance of Prototype = 100
-- Wallet 2 has balance of Prototype = 30.7 
-- Wallet 3 has balance of Prototype = 79.5 
-- Total Supply = 210.2
-**Note: The Smart contract only maintain the record of total supply and the amount of individual holders** 
 
 ## A Note on decimals
 Let's assume we have a ERC20 token named "GLD". Often, we’ll want to be able to divide our tokens into arbitrary amounts: say, if we own 5 GLD, we may want to send 1.5 GLD to a friend, and keep 3.5 GLD to ourselves. 
