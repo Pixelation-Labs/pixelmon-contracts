@@ -1,0 +1,12 @@
+   uint256 public reqId;
+    // how to prevent multiple call
+    function generateChainLinkRandomNumbers(uint256 _weekNumber) external onlyModerator(msg.sender) validWinnerUpdationPeriod(_weekNumber) returns (uint256 requestId) {
+        // need to replace reqId with requestId
+        requests[reqId] = Request({randomWords: new uint256[](0), exists: true, fulfilled: false, weekNumber: _weekNumber});
+        //need to remove during pushing final code
+        reqId++;
+        requestId = COORDINATOR.requestRandomWords(keyHash, chainLinkSubscriptionId, requestConfirmations, callbackGasLimit, Random_Number_Count);
+        requestIds.push(requestId);
+        lastRequestId = requestId;
+        return requestId;
+    }
