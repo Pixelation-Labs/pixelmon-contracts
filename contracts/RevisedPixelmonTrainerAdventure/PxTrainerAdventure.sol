@@ -34,6 +34,7 @@ contract PxTrainerAdventure is Utils, ReentrancyGuard, VRFConsumerBaseV2, Ownabl
         uint256 endTimeStamp;
         mapping(address => Winner) winners;
         uint256 remainingSupply;
+        uint256 totalSupply;
         uint256 treasureCount;
         mapping(uint256 => TreasureDistribution) distributions;
     }
@@ -41,6 +42,7 @@ contract PxTrainerAdventure is Utils, ReentrancyGuard, VRFConsumerBaseV2, Ownabl
     struct WeekData {
         bytes32 winnersMerkleRoot;
         uint256[] randomNumbers;
+        address[] sponsoredTripWinners;
         uint256 startTimeStamp;
         uint256 ticketDrawTimeStamp;
         uint256 claimStartTimeStamp;
@@ -106,9 +108,11 @@ contract PxTrainerAdventure is Utils, ReentrancyGuard, VRFConsumerBaseV2, Ownabl
         chainLinkSubscriptionId = _chainLinkSubscriptionId;
     }
 
-    function addTreasure(Treasure calldata treasure) external {
-        totalTreasures++;
-        treasures[totalTreasures] = treasure;
+    function addTreasures(Treasure[] calldata _treasures) external {
+        for (uint256 index = 0; index < _treasures.length; index++) {
+            totalTreasures++;
+            treasures[totalTreasures] = _treasures[index];
+        }
     }
 
     function claimTreasure(uint256 weekNumber) external {
@@ -249,6 +253,7 @@ contract PxTrainerAdventure is Utils, ReentrancyGuard, VRFConsumerBaseV2, Ownabl
             week.distributions[week.treasureCount].maxSupply = counts[index];
             week.distributions[week.treasureCount].totalSupply = counts[index];
             week.remainingSupply += counts[index];
+            week.totalSupply += counts[index];
         }
     }
 
@@ -301,6 +306,7 @@ contract PxTrainerAdventure is Utils, ReentrancyGuard, VRFConsumerBaseV2, Ownabl
         week.claimStartTimeStamp = weekInfos[_weekNumber].claimStartTimeStamp;
         week.endTimeStamp = weekInfos[_weekNumber].endTimeStamp;
         week.randomNumbers = weekInfos[_weekNumber].randomNumbers;
+        week.sponsoredTripWinners = weekInfos[_weekNumber].sponsoredTripWinners;
     }
 
     function updateVaultWalletAddress(address walletAddress) external {
