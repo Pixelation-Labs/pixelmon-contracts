@@ -8,9 +8,11 @@
   "scripts": {
     "compile": "npx hardhat compile",
     "test:coverage": "npx hardhat coverage --network hardhat",
+    "publish:contract:mainnet": "npx hardhat verify --network mainnet",
     "deploy:contract:hardhat": "npx hardhat run ./scripts/deploy.Contract.js --network hardhat",
+    "deploy:pxTrainerAdventureContract:goerli": "npx hardhat run ./scripts/PxTrainerAdventure/deploy.Contract.js --network goerli",
     "publish:contract:goerli": "npx hardhat verify --network goerli",
-    "publish:contract:mainnet": "npx hardhat verify --network mainnet"
+    "deploy:contract:mainnet": "npx hardhat run ./scripts/deploy.Contract.js --network mainnet"
   },
   "dependencies": {
     "@chainlink/contracts": "^0.5.1",
