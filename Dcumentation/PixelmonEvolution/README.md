@@ -141,16 +141,16 @@ yarn compile
 
 6. Deploy smart contract. 
 ```
-yarn deploy:contract:mainnet
+yarn deploy:pixelmon:evolution:contract:mainnet
 ```
 For goerli it will be 
 ```
-yarn deploy:contract:goerli
+yarn deploy:pixelmon:evolution:contract:goerli
 ```
 
 7. To test the smart contract use this command
 ```
-yarn test
+test:pixelmon:evolution
 ```
 
 8. Publish Smart contract
