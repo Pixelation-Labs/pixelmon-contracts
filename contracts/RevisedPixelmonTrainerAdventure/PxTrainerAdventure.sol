@@ -1,142 +1,154 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.16;
-import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
-import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "./WinnerSelectionManager.sol";
 import "./Utils.sol";
 
-error InvalidDuration();
-error NotAWinner();
+/// @notice Thrown when treasure is already claimed by the same user in the same week
 error ALreadyClaimed();
-error InvalidWeekNumber();
-error InvalidTimeStamp();
+/// @notice Thrown when address is not part of the winner Merkle Tree
+error NotAWinner();
+error InvalidInput();
+error InvalidTreasureIndex();
+error InsufficientToken();
+error NotEnoughWinnersForSponsoredTrip();
 
-contract PxTrainerAdventure is Utils, ReentrancyGuard, VRFConsumerBaseV2, Ownable {
-    modifier validWeekNumber(uint256 _weekNumber) {
-        if (_weekNumber == 0 || _weekNumber > totalWeek) {
-            revert InvalidWeekNumber();
-        }
-        _;
-    }
+contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
     uint256 public constant ERC_1155_TYPE = 1;
     uint256 public constant ERC_721_TYPE = 2;
-    uint32 public constant Random_Number_Count = 3;
-    struct Week {
-        uint256[] randomNumbers;
-        address[] sponsoredTripWinners;
-        uint256 startTimeStamp;
-        uint256 ticketDrawTimeStamp;
-        uint256 claimStartTimeStamp;
-        uint256 endTimeStamp;
-        mapping(address => Winner) winners;
-        uint256 remainingSupply;
-        uint256 totalSupply;
-        uint256 treasureCount;
-        mapping(uint256 => TreasureDistribution) distributions;
-    }
 
-    struct WeekData {
-        bytes32 winnersMerkleRoot;
-        uint256[] randomNumbers;
-        address[] sponsoredTripWinners;
-        uint256 startTimeStamp;
-        uint256 ticketDrawTimeStamp;
-        uint256 claimStartTimeStamp;
-        uint256 endTimeStamp;
-    }
-
-    struct Winner {
-        uint256 claimLimit;
-        uint256 claimed;
-        mapping(uint256 => bool) claimedTreasureType;
-    }
-
-    struct TreasureDistribution {
-        uint256 treasureIndex;
-        uint256 maxSupply;
-        uint256 totalSupply;
-    }
-
-    mapping(uint256 => Week) public weekInfos;
-
-    struct Treasure {
-        address collectionAddress;
-        uint256 tokenId;
-        uint256 contractType;
-        uint256 treasureType;
-    }
     address public vaultWalletAddress;
-    uint256 public totalWeek;
+
+    uint256 public claimIndexCount;
     uint256 public totalTreasures;
+    Treasure public sponsoredTrip;
     mapping(uint256 => Treasure) public treasures;
+    mapping(address => bool) public sponsoredTripWinners;
 
-    struct Request {
-        bool fulfilled;
-        bool exists;
-        uint256 weekNumber;
-        uint256[] randomWords;
-    }
-    /// @notice Map of request to Chainlink
-    mapping(uint256 => Request) public requests;
-    /// @notice Collection of chainink request ID
-    uint256[] public requestIds;
-    /// @notice Last request ID to Chainlink
-    uint256 public lastRequestId;
-    /// @notice Gas limit used to call Chainlink
-    uint32 public callbackGasLimit = 2500000;
-    /// @notice Address that is able to call Chainlink
-    VRFCoordinatorV2Interface internal COORDINATOR;
+    event TreasureTransferred(
+        uint256 weekNumber,
+        uint256 requestId,
+        address userWallet,
+        address collectionAddress,
+        uint256 tokenId,
+        uint256 tokenType,
+        uint256 randomNumber
+    );
 
-    /// @notice How many confirmations the Chainlink node should wait before responding
-    uint16 requestConfirmations = 3;
-    /// @notice Chainlink subscription ID that used for sending request
-    uint64 public chainLinkSubscriptionId;
-    /// @notice The maximum gas price to pay for a request to Chainlink in wei.
-    bytes32 public keyHash;
+    constructor(
+        address _vrfCoordinator,
+        uint64 _chainLinkSubscriptionId,
+        bytes32 _keyHash
+    ) WinnerSelectionManager(_vrfCoordinator, _chainLinkSubscriptionId, _keyHash) {}
 
-    event ChainlinkRandomNumberSet(uint256 weekNumber, uint256[] RandomWords);
-
-    event WeeklyWinnersSet(uint256 weekNumber, address[] SponsoredTripWinners);
-
-    constructor(address _vrfCoordinator, uint64 _chainLinkSubscriptionId, bytes32 _keyHash) VRFConsumerBaseV2(_vrfCoordinator) {
-        COORDINATOR = VRFCoordinatorV2Interface(_vrfCoordinator);
-        keyHash = _keyHash;
-        chainLinkSubscriptionId = _chainLinkSubscriptionId;
+    function setVaultWalletAddress(address _walletAddress) external onlyOwner {
+        vaultWalletAddress = _walletAddress;
     }
 
-    function addTreasures(Treasure[] calldata _treasures) external {
-        for (uint256 index = 0; index < _treasures.length; index++) {
-            totalTreasures++;
-            treasures[totalTreasures] = _treasures[index];
+    function addTreasures(Treasure memory _treasure) external onlyAdmin(msg.sender) {
+        totalTreasures++;
+        if (_treasure.claimedToken != 0 || (_treasure.contractType != 1 && _treasure.contractType != 2)) {
+            revert InvalidInput();
         }
+        if ((_treasure.contractType == 1 && _treasure.tokenIds.length > 0) || (_treasure.contractType == 2 && _treasure.tokenIds.length <= 0)) {
+            revert InvalidInput();
+        }
+        treasures[totalTreasures] = _treasure;
     }
 
-    function claimTreasure(uint256 weekNumber) external {
-        Week storage week = weekInfos[weekNumber];
+    function addSponsoredTripTreasure(Treasure memory _treasure) external onlyAdmin(msg.sender) {
+        if (_treasure.claimedToken != 0 || _treasure.contractType != 1 || _treasure.tokenIds.length > 0) {
+            revert InvalidInput();
+        }
+        sponsoredTrip = _treasure;
+    }
+
+    function claimTreasure(uint256 _weekNumber) external nonReentrant noContracts {
+        if (
+            !(block.timestamp >= weekInfos[_weekNumber].claimStartTimeStamp &&
+                block.timestamp <= weekInfos[_weekNumber].endTimeStamp)
+        ) {
+            revert InvalidClaimingPeriod();
+        }
+        Week storage week = weekInfos[_weekNumber];
         if (week.winners[msg.sender].claimLimit == 0) {
             revert NotAWinner();
         }
-        if (week.winners[msg.sender].claimed == weekInfos[weekNumber].winners[msg.sender].claimLimit) {
+        if (week.winners[msg.sender].claimed == weekInfos[_weekNumber].winners[msg.sender].claimLimit) {
             revert ALreadyClaimed();
         }
         if (week.winners[msg.sender].claimed == 0) {
-            firstClaim(weekNumber);
+            primaryClaim(_weekNumber);
         } else {
-            multiClaim(weekNumber);
+            secondaryClaim(_weekNumber);
         }
     }
 
-    function multiClaim(uint256 weekNumber) internal {
-        Week storage week = weekInfos[weekNumber];
+    function primaryClaim(uint256 _weekNumber) internal {
+        Week storage week = weekInfos[_weekNumber];
+        if (week.tripWinnersMap[msg.sender]) {
+            sponsoredTripWinners[msg.sender] = true;
+            week.tripWinnersMap[msg.sender] = false;
+            week.winners[msg.sender].claimed++;
+            week.availabletripsCount--;
+            transferToken(sponsoredTrip);
+            claimIndexCount++;
+            emit TreasureTransferred(
+                _weekNumber,
+                claimIndexCount,
+                msg.sender,
+                sponsoredTrip.collectionAddress,
+                sponsoredTrip.tokenId,
+                sponsoredTrip.contractType,
+                0
+            );
+        } else {
+            uint256 randomNumber = getRandomNumber();
+            uint256 random = randomNumber - ((randomNumber / week.remainingSupply) * week.remainingSupply) + 1;
+
+            uint256 selectedIndex;
+            uint256 sumOfTotalSupply;
+
+            for (uint256 index = 1; index <= week.treasureCount; index++) {
+                if (week.distributions[index].totalSupply == 0) {
+                    continue;
+                }
+                sumOfTotalSupply += week.distributions[index].totalSupply;
+                if (random <= sumOfTotalSupply) {
+                    selectedIndex = index;
+                    break;
+                }
+            }
+            uint256 selectedTreasureIndex = week.distributions[selectedIndex].treasureIndex;
+            week.distributions[selectedIndex].totalSupply--;
+            week.winners[msg.sender].treasureTypeClaimed[treasures[selectedTreasureIndex].treasureType] = true;
+            week.winners[msg.sender].claimed++;
+            week.remainingSupply--;
+            claimIndexCount++;
+            transferToken(treasures[selectedTreasureIndex]);
+            emit TreasureTransferred(
+                _weekNumber,
+                claimIndexCount,
+                msg.sender,
+                treasures[selectedTreasureIndex].collectionAddress,
+                treasures[selectedTreasureIndex].tokenId,
+                treasures[selectedTreasureIndex].contractType,
+                randomNumber
+            );
+        }
+    }
+
+    function secondaryClaim(uint256 _weekNumber) internal {
+        Week storage week = weekInfos[_weekNumber];
         uint256 remaining;
         uint256 altRemaining;
 
         for (uint256 index = 1; index <= week.treasureCount; index++) {
-            if (week.winners[msg.sender].claimedTreasureType[treasures[week.distributions[index].treasureIndex].treasureType]) {
+            uint256 treasureType = treasures[week.distributions[index].treasureIndex].treasureType;
+            if (week.winners[msg.sender].treasureTypeClaimed[treasureType]) {
                 altRemaining += week.distributions[index].totalSupply;
             } else {
                 remaining += week.distributions[index].totalSupply;
@@ -149,10 +161,8 @@ contract PxTrainerAdventure is Utils, ReentrancyGuard, VRFConsumerBaseV2, Ownabl
         if (altRemaining == week.remainingSupply) {
             uint256 random = randomNumber - ((randomNumber / altRemaining) * altRemaining) + 1;
             for (uint256 index = 1; index <= week.treasureCount; index++) {
-                if (
-                    week.distributions[index].totalSupply == 0 ||
-                    !week.winners[msg.sender].claimedTreasureType[treasures[week.distributions[index].treasureIndex].treasureType]
-                ) {
+                uint256 treasureType = treasures[week.distributions[index].treasureIndex].treasureType;
+                if (week.distributions[index].totalSupply == 0 || !week.winners[msg.sender].treasureTypeClaimed[treasureType]) {
                     continue;
                 }
                 sumOfTotalSupply += week.distributions[index].totalSupply;
@@ -165,10 +175,8 @@ contract PxTrainerAdventure is Utils, ReentrancyGuard, VRFConsumerBaseV2, Ownabl
             uint256 random = randomNumber - ((randomNumber / remaining) * remaining) + 1;
 
             for (uint256 index = 1; index <= week.treasureCount; index++) {
-                if (
-                    week.distributions[index].totalSupply == 0 ||
-                    week.winners[msg.sender].claimedTreasureType[treasures[week.distributions[index].treasureIndex].treasureType]
-                ) {
+                uint256 treasureType = treasures[week.distributions[index].treasureIndex].treasureType;
+                if (week.distributions[index].totalSupply == 0 || week.winners[msg.sender].treasureTypeClaimed[treasureType]) {
                     continue;
                 }
                 sumOfTotalSupply += week.distributions[index].totalSupply;
@@ -181,175 +189,113 @@ contract PxTrainerAdventure is Utils, ReentrancyGuard, VRFConsumerBaseV2, Ownabl
 
         uint256 selectedTreasureIndex = week.distributions[selectedIndex].treasureIndex;
         week.distributions[selectedIndex].totalSupply--;
-        week.winners[msg.sender].claimedTreasureType[treasures[selectedTreasureIndex].treasureType] = true;
+        week.winners[msg.sender].treasureTypeClaimed[treasures[selectedTreasureIndex].treasureType] = true;
         week.winners[msg.sender].claimed++;
         week.remainingSupply--;
-
-        transferToken(
-            treasures[selectedTreasureIndex].collectionAddress,
-            treasures[selectedTreasureIndex].contractType,
+        transferToken(treasures[selectedTreasureIndex]);
+        emit TreasureTransferred(
+            _weekNumber,
+            claimIndexCount,
             msg.sender,
-            treasures[selectedTreasureIndex].tokenId
+            treasures[selectedTreasureIndex].collectionAddress,
+            treasures[selectedTreasureIndex].tokenId,
+            treasures[selectedTreasureIndex].contractType,
+            randomNumber
         );
     }
 
-    function firstClaim(uint256 weekNumber) internal {
-        Week storage week = weekInfos[weekNumber];
-        uint256 randomNumber = getRandomNumber();
-        uint256 random = randomNumber - ((randomNumber / week.remainingSupply) * week.remainingSupply) + 1;
-
-        uint256 selectedIndex;
-        uint256 sumOfTotalSupply;
-
-        for (uint256 index = 1; index <= week.treasureCount; index++) {
-            if (week.distributions[index].totalSupply == 0) {
-                continue;
+    function transferToken(Treasure memory _treasure) internal {
+        if (_treasure.contractType == ERC_1155_TYPE) {
+            IERC1155 erc1155Contract = IERC1155(_treasure.collectionAddress);
+            erc1155Contract.safeTransferFrom(vaultWalletAddress, msg.sender, _treasure.tokenId, 1, "");
+        }
+        if (_treasure.contractType == ERC_721_TYPE) {
+            IERC721 erc721Contract = IERC721(_treasure.collectionAddress);
+            if (_treasure.tokenIds.length == _treasure.claimedToken) {
+                revert InsufficientToken();
             }
-            sumOfTotalSupply += week.distributions[index].totalSupply;
-            if (random <= sumOfTotalSupply) {
-                selectedIndex = index;
-                break;
-            }
-        }
-        uint256 selectedTreasureIndex = week.distributions[selectedIndex].treasureIndex;
-        week.distributions[selectedIndex].totalSupply--;
-        week.winners[msg.sender].claimedTreasureType[treasures[selectedTreasureIndex].treasureType] = true;
-        week.winners[msg.sender].claimed++;
-        week.remainingSupply--;
-
-        transferToken(
-            treasures[selectedTreasureIndex].collectionAddress,
-            treasures[selectedTreasureIndex].contractType,
-            msg.sender,
-            treasures[selectedTreasureIndex].tokenId
-        );
-    }
-
-    function transferToken(address _collection, uint256 _type, address _to, uint256 _id) internal {
-        if (_type == ERC_1155_TYPE) {
-            IERC1155 erc1155Contract = IERC1155(_collection);
-            erc1155Contract.safeTransferFrom(vaultWalletAddress, _to, _id, 1, "");
-        }
-        if (_type == ERC_721_TYPE) {
-            IERC721 erc721Contract = IERC721(_collection);
-            erc721Contract.transferFrom(vaultWalletAddress, _to, _id);
+            erc721Contract.transferFrom(vaultWalletAddress, msg.sender, _treasure.tokenIds[_treasure.claimedToken]);
+            _treasure.claimedToken++;
         }
     }
 
-    function updateWeeklyWinners(uint256 weekNumber, address[] calldata winners, uint256[] calldata counts) external {
-        for (uint256 index = 0; index < winners.length; index++) {
-            weekInfos[weekNumber].winners[winners[index]].claimLimit = counts[index];
-        }
-        address[] memory sponsoredTripWinners;
-        emit WeeklyWinnersSet(weekNumber, sponsoredTripWinners);
-    }
-
-    function updateWeeklyTreasureDistribution(uint256 weekNumber, uint256[] calldata treasureindexes, uint256[] calldata counts) external {
-        Week storage week = weekInfos[weekNumber];
-
-        for (uint256 index = 0; index < treasureindexes.length; index++) {
-            week.treasureCount++;
-            week.distributions[week.treasureCount].treasureIndex = treasureindexes[index];
-            week.distributions[week.treasureCount].maxSupply = counts[index];
-            week.distributions[week.treasureCount].totalSupply = counts[index];
-            week.remainingSupply += counts[index];
-            week.totalSupply += counts[index];
-        }
-    }
-
-    function setWeeklyTimeStamp(
-        uint256 _numberOfWeeks,
-        uint256 _startTimeStamp,
-        uint256 _prizeUpdationDuration,
-        uint256 _winnerUpdationDuration,
-        uint256 _weeklyDuration
-    ) external {
-        if (_weeklyDuration <= (_prizeUpdationDuration + _winnerUpdationDuration)) {
-            revert InvalidDuration();
-        }
-        for (uint256 index = 0; index < _numberOfWeeks; index++) {
-            totalWeek++;
-            weekInfos[totalWeek].startTimeStamp = _startTimeStamp;
-            weekInfos[totalWeek].ticketDrawTimeStamp = _startTimeStamp + _prizeUpdationDuration;
-            weekInfos[totalWeek].claimStartTimeStamp = _startTimeStamp + _prizeUpdationDuration + _winnerUpdationDuration;
-            weekInfos[totalWeek].endTimeStamp = _startTimeStamp + _weeklyDuration - 1;
-            _startTimeStamp += _weeklyDuration;
-        }
-    }
-
-    function updateWeekTimeStamp(
+    function setWeeklyTreasureDistribution(
         uint256 _weekNumber,
-        uint256 _startTimeStamp,
-        uint256 _prizeUpdationDuration,
-        uint256 _winnerUpdationDuration,
-        uint256 _weeklyDuration
-    ) external validWeekNumber(_weekNumber) {
-        if (_weeklyDuration <= (_prizeUpdationDuration + _winnerUpdationDuration)) {
-            revert InvalidDuration();
+        uint256[] memory _treasureindexes,
+        uint256[] memory _counts
+    )
+        external
+        onlyAdmin(msg.sender) validTreaureDistributionPeriod(_weekNumber)
+        validArrayLength(_treasureindexes.length, _counts.length)
+    {
+        Week storage week = weekInfos[_weekNumber];
+
+        for (uint256 index = 0; index < _treasureindexes.length; index++) {
+            if (_treasureindexes[index] == 0 || _treasureindexes[index] > totalTreasures) {
+                revert InvalidTreasureIndex();
+            }
+            week.treasureCount++;
+            week.distributions[week.treasureCount].treasureIndex = _treasureindexes[index];
+            week.distributions[week.treasureCount].totalSupply = _counts[index];
+            week.remainingSupply += _counts[index];
         }
-        if (_weekNumber != 1 && _startTimeStamp <= weekInfos[_weekNumber - 1].endTimeStamp) {
-            revert InvalidTimeStamp();
+    }
+
+    function setWeeklySponsoredTripDistribution(
+        uint256 _weekNumber,
+        uint256 _count
+    )
+        external
+        onlyAdmin(msg.sender) validTreaureDistributionPeriod(_weekNumber)
+    {
+        weekInfos[_weekNumber].sponsoredTripsCount = _count;
+        weekInfos[_weekNumber].availabletripsCount = _count;
+    }
+
+    function updateWeeklyWinners(
+        uint256 _weekNumber,
+        address[] memory _winners,
+        uint8[] memory _counts
+    )
+        external
+        onlyModerator(msg.sender)
+        validWeekNumber(_weekNumber)
+        validArrayLength(_winners.length, _counts.length)
+    validWinnerUpdationPeriod(_weekNumber)
+    {
+        uint256 randomNumber = getRandomNumber();
+        uint256 index = randomNumber - ((randomNumber / _counts.length) * _counts.length);
+        uint256 counter = 0;
+        uint256 tripCount = 0;
+        address[] memory tmp = new address[](weekInfos[_weekNumber].sponsoredTripsCount);
+        while (counter < _counts.length) {
+            if (index == _counts.length) {
+                index = 0;
+            }
+            if (sponsoredTripWinners[_winners[index]] == false && tripCount < weekInfos[_weekNumber].sponsoredTripsCount) {
+                weekInfos[_weekNumber].tripWinnersMap[_winners[index]] = true;
+                tmp[tripCount] = _winners[index];
+                tripCount++;
+            }
+            weekInfos[_weekNumber].winners[_winners[index]].claimLimit = _counts[index];
+
+            index++;
+            counter++;
         }
-        if (_weekNumber != totalWeek && _startTimeStamp + _weeklyDuration - 1 >= weekInfos[_weekNumber + 1].startTimeStamp) {
-            revert InvalidTimeStamp();
+        if (tripCount < weekInfos[_weekNumber].sponsoredTripsCount) {
+            revert NotEnoughWinnersForSponsoredTrip();
         }
+        weekInfos[_weekNumber].tripWinners = tmp;
 
-        weekInfos[_weekNumber].startTimeStamp = _startTimeStamp;
-        weekInfos[_weekNumber].ticketDrawTimeStamp = _startTimeStamp + _prizeUpdationDuration;
-        weekInfos[_weekNumber].claimStartTimeStamp = _startTimeStamp + _prizeUpdationDuration + _winnerUpdationDuration;
-        weekInfos[_weekNumber].endTimeStamp = _startTimeStamp + _weeklyDuration - 1;
+        emit WeeklyWinnersSet(_weekNumber, tmp);
     }
 
-    function getWeekInfo(uint256 _weekNumber) external view returns (WeekData memory week) {
-        week.startTimeStamp = weekInfos[_weekNumber].startTimeStamp;
-        week.ticketDrawTimeStamp = weekInfos[_weekNumber].ticketDrawTimeStamp;
-        week.claimStartTimeStamp = weekInfos[_weekNumber].claimStartTimeStamp;
-        week.endTimeStamp = weekInfos[_weekNumber].endTimeStamp;
-        week.randomNumbers = weekInfos[_weekNumber].randomNumbers;
-        week.sponsoredTripWinners = weekInfos[_weekNumber].sponsoredTripWinners;
-    }
-
-    function updateVaultWalletAddress(address walletAddress) external {
-        vaultWalletAddress = walletAddress;
-    }
-
-    // @notice Generate random number from Chainlink
-    /// @param _weekNumber Number of the week
-    /// @return requestId Chainlink requestId
-    function generateChainLinkRandomNumbers(uint256 _weekNumber) external validWeekNumber(_weekNumber) returns (uint256 requestId) {
-        requestId = COORDINATOR.requestRandomWords(keyHash, chainLinkSubscriptionId, requestConfirmations, callbackGasLimit, Random_Number_Count);
-        requests[requestId] = Request({randomWords: new uint256[](0), exists: true, fulfilled: false, weekNumber: _weekNumber});
-        requestIds.push(requestId);
-        lastRequestId = requestId;
-        return requestId;
-    }
-
-    /// @notice Store random words in a contract
-    /// @param _requestId Chainlink request ID
-    /// @param _randomWords A collection of random word
-    function fulfillRandomWords(uint256 _requestId, uint256[] memory _randomWords) internal override {
-        require(requests[_requestId].exists, "request not found");
-        requests[_requestId].fulfilled = true;
-        requests[_requestId].randomWords = _randomWords;
-        weekInfos[requests[_requestId].weekNumber].randomNumbers = _randomWords;
-        emit ChainlinkRandomNumberSet(requests[_requestId].weekNumber, _randomWords);
-    }
-
-    /// @notice Set callback gas limit parameter when sending request to Chainlink
-    /// @param _callbackGasLimit Amount of expected gas limit
-    function setCallbackGasLimit(uint32 _callbackGasLimit) external {
-        callbackGasLimit = _callbackGasLimit;
-    }
-
-    /// @notice Set keyHash parameter when sending request to Chainlink
-    /// @param _keyHash key Hash for chain link
-    function setChainLinkKeyHash(bytes32 _keyHash) external {
-        keyHash = _keyHash;
-    }
-
-    /// @notice Set chainLinkSubscriptionId parameter when sending request to Chainlink
-    /// @param _chainLinkSubscriptionId chainlink subcription Id
-    function setChainlinkSubscriptionId(uint64 _chainLinkSubscriptionId) external {
-        chainLinkSubscriptionId = _chainLinkSubscriptionId;
+    function setSponsoredTripWinnerMap(
+        address[] memory _previousWinners,
+        bool[] memory _flags
+    ) external onlyAdmin(msg.sender) validArrayLength(_previousWinners.length, _flags.length) {
+        for (uint256 index = 0; index < _flags.length; index++) {
+            sponsoredTripWinners[_previousWinners[index]] = _flags[index];
+        }
     }
 }

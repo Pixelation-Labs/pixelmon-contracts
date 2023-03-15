@@ -15,10 +15,6 @@ error InvalidTimeStamp();
 /// @notice Thrown when inputting week number less than equal to the current week number
 ///         and when the start week number is greater than end week number
 error InvalidWeekNumber();
-/// @notice Thrown when inputting invalid merkel root
-error InvalidMerkleRoot();
-/// @notice Thrown when overridding existing merkle root
-error MerkleRootAlreadySet();
 /// @notice Thrown when claiming duration is less than a week
 error InvalidDuration();
 /// @notice Thrown when block.timestamp is less than end timestamp of the current week
@@ -31,7 +27,95 @@ error NotAdmin();
 /// @notice Thrown when address has no "Moderator" role
 error NotModerator();
 
+error InvalidLength();
+
 contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
+    /// @notice Amount of random number requested to Chainlink
+    uint32 public constant Random_Number_Count = 3;
+
+    /// @notice Struct object to send request to Chainlink
+    struct Request {
+        bool fulfilled;
+        bool exists;
+        uint256 weekNumber;
+        uint256[] randomWords;
+    }
+
+    struct Winner {
+        uint8 claimLimit;
+        uint8 claimed;
+        mapping(uint256 => bool) treasureTypeClaimed;
+    }
+
+    struct Treasure {
+        address collectionAddress;
+        uint256 tokenId;
+        uint256[] tokenIds;
+        uint256 claimedToken;
+        uint256 contractType;
+        uint256 treasureType;
+    }
+
+    struct TreasureDistribution {
+        uint256 treasureIndex;
+        uint256 totalSupply;
+    }
+    struct Week {
+        uint256 startTimeStamp;
+        uint256 ticketDrawTimeStamp;
+        uint256 claimStartTimeStamp;
+        uint256 endTimeStamp;
+        uint256 remainingSupply;
+        uint256 treasureCount;
+        uint256 sponsoredTripsCount;
+        uint256 availabletripsCount;
+        uint256[] randomNumbers;
+        address[] tripWinners;
+        mapping(address => bool) tripWinnersMap;
+        mapping(uint256 => TreasureDistribution) distributions;
+        mapping(address => Winner) winners;
+    }
+
+    struct WeekData {
+        uint256 startTimeStamp;
+        uint256 ticketDrawTimeStamp;
+        uint256 claimStartTimeStamp;
+        uint256 endTimeStamp;
+        uint256 remainingSupply;
+        uint256 treasureCount;
+        uint256 sponsoredTripsCount;
+        uint256[] randomNumbers;
+        address[] tripWinners;
+        uint256 availabletripsCount;
+    }
+
+    /// @notice Total week to claim treasure
+    uint256 public totalWeek;
+    /// @notice Collection of information for each week
+    mapping(uint256 => Week) public weekInfos;
+
+    /// @notice List of address that has "Admin" role, 'true' means it has the privilege
+    mapping(address => bool) public adminWallets;
+    /// @notice List of address that has "Moderator" role, 'true' means it has the privilege
+    mapping(address => bool) public moderatorWallets;
+
+    /// @notice The maximum gas price to pay for a request to Chainlink in wei.
+    bytes32 public keyHash;
+    /// @notice How many confirmations the Chainlink node should wait before responding
+    uint16 requestConfirmations = 3;
+    /// @notice Chainlink subscription ID that used for sending request
+    uint64 public chainLinkSubscriptionId;
+    /// @notice Gas limit used to call Chainlink
+    uint32 public callbackGasLimit = 400000;
+    /// @notice Address that is able to call Chainlink
+    VRFCoordinatorV2Interface internal COORDINATOR;
+    /// @notice Last request ID to Chainlink
+    uint256 public lastRequestId;
+    /// @notice Collection of chainink request ID
+    uint256[] public requestIds;
+    /// @notice Map of request to Chainlink
+    mapping(uint256 => Request) public requests;
+
     /// @notice Check whether address has "Admin" role
     /// @param _walletAddress Valid ethereum address
     modifier onlyAdmin(address _walletAddress) {
@@ -53,7 +137,7 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
     /// @notice Check whether block.timestamp is within the schedule
     ///         to update pool
     /// @param _weekNumber Number of the week
-    modifier validPoolUpdationPeriod(uint256 _weekNumber) {
+    modifier validTreaureDistributionPeriod(uint256 _weekNumber) {
         if (!(block.timestamp >= weekInfos[_weekNumber].startTimeStamp && block.timestamp < weekInfos[_weekNumber].ticketDrawTimeStamp)) {
             revert InvalidUpdationPeriod();
         }
@@ -79,72 +163,19 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
         _;
     }
 
-    /// @notice Amount of random number requested to Chainlink
-    uint32 public constant Random_Number_Count = 3;
-    /// @notice Total week to claim treasure
-    uint256 public totalWeek;
-    /// @notice Struct object that provides information regarding the week
-    struct WeekInfo {
-        bytes32 winnersMerkleRoot;
-        uint256[] randomNumbers;
-        uint256 startTimeStamp;
-        uint256 ticketDrawTimeStamp;
-        uint256 claimStartTimeStamp;
-        uint256 endTimeStamp;
-        mapping(address => bool) claimed;
+    modifier validArrayLength(uint256 lenght1, uint256 length2) {
+        if (lenght1 != length2) {
+            revert InvalidLength();
+        }
+        _;
     }
-    /// @notice Similar with WeekInfo but omit `claimed` mapping
-    struct WeekData {
-        bytes32 winnersMerkleRoot;
-        uint256[] randomNumbers;
-        uint256 startTimeStamp;
-        uint256 ticketDrawTimeStamp;
-        uint256 claimStartTimeStamp;
-        uint256 endTimeStamp;
-    }
-    /// @notice Collection of information for each week
-    mapping(uint256 => WeekInfo) public weekInfos;
-    /// @notice List of address that has "Admin" role, 'true' means it has the privilege
-    mapping(address => bool) public adminWallets;
-    /// @notice List of address that has "Moderator" role, 'true' means it has the privilege
-    mapping(address => bool) public moderatorWallets;
-    /// @notice Struct object to send request to Chainlink
-    struct Request {
-        bool fulfilled;
-        bool exists;
-        uint256 weekNumber;
-        uint256[] randomWords;
-    }
-    /// @notice Map of request to Chainlink
-    mapping(uint256 => Request) public requests;
-    /// @notice Collection of chainink request ID
-    uint256[] public requestIds;
-    /// @notice Last request ID to Chainlink
-    uint256 public lastRequestId;
-    /// @notice Gas limit used to call Chainlink
-    uint32 public callbackGasLimit = 2500000;
-    /// @notice Address that is able to call Chainlink
-    VRFCoordinatorV2Interface internal COORDINATOR;
 
-    /// @notice How many confirmations the Chainlink node should wait before responding
-    uint16 requestConfirmations = 3;
-    /// @notice Chainlink subscription ID that used for sending request
-    uint64 public chainLinkSubscriptionId;
-    /// @notice The maximum gas price to pay for a request to Chainlink in wei.
-    bytes32 public keyHash;
-
-    /// @notice Emit when calling setMerkleRoot function
-    /// @param weekNumber The current week number
-    /// @param MerkleRoot The input merkle root
-    event SetWinnerMerkelRoot(uint256 weekNumber, bytes32 MerkleRoot);
-    /// @notice Emit when calling updateMerkleRoot function
-    /// @param weekNumber The specified week number
-    /// @param MerkleRoot The input merkle root
-    event UpdateWinnerMerkelRoot(uint256 weekNumber, bytes32 MerkleRoot);
     /// @notice Emit when calling fulfillRandomWords function
     /// @param weekNumber The week number when the request is sent to Chainlink
     /// @param RandomWords The input random words
     event ChainlinkRandomNumberSet(uint256 weekNumber, uint256[] RandomWords);
+
+    event WeeklyWinnersSet(uint256 weekNumber, address[] tripWinners);
 
     constructor(address _vrfCoordinator, uint64 _chainLinkSubscriptionId, bytes32 _keyHash) VRFConsumerBaseV2(_vrfCoordinator) {
         COORDINATOR = VRFCoordinatorV2Interface(_vrfCoordinator);
@@ -162,6 +193,24 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
     /// @dev Only owner can call this method
     function setModeratorWallet(address _walletAddress, bool _flag) external onlyOwner {
         moderatorWallets[_walletAddress] = _flag;
+    }
+
+    /// @notice Set callback gas limit parameter when sending request to Chainlink
+    /// @param _callbackGasLimit Amount of expected gas limit
+    function setCallbackGasLimit(uint32 _callbackGasLimit) external onlyAdmin(msg.sender) {
+        callbackGasLimit = _callbackGasLimit;
+    }
+
+    /// @notice Set keyHash parameter when sending request to Chainlink
+    /// @param _keyHash key Hash for chain link
+    function setChainLinkKeyHash(bytes32 _keyHash) external onlyAdmin(msg.sender) {
+        keyHash = _keyHash;
+    }
+
+    /// @notice Set chainLinkSubscriptionId parameter when sending request to Chainlink
+    /// @param _chainLinkSubscriptionId chainlink subcription Id
+    function setChainlinkSubscriptionId(uint64 _chainLinkSubscriptionId) external onlyAdmin(msg.sender) {
+        chainLinkSubscriptionId = _chainLinkSubscriptionId;
     }
 
     // @notice Generate random number from Chainlink
@@ -188,63 +237,13 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
         emit ChainlinkRandomNumberSet(requests[_requestId].weekNumber, _randomWords);
     }
 
-    /// @notice Set callback gas limit parameter when sending request to Chainlink
-    /// @param _callbackGasLimit Amount of expected gas limit
-    function setCallbackGasLimit(uint32 _callbackGasLimit) external onlyAdmin(msg.sender) {
-        callbackGasLimit = _callbackGasLimit;
-    }
-
-    /// @notice Set keyHash parameter when sending request to Chainlink
-    /// @param _keyHash key Hash for chain link
-    function setChainLinkKeyHash(bytes32 _keyHash) external onlyAdmin(msg.sender) {
-        keyHash = _keyHash;
-    }
-
-    /// @notice Set chainLinkSubscriptionId parameter when sending request to Chainlink
-    /// @param _chainLinkSubscriptionId chainlink subcription Id
-    function setChainlinkSubscriptionId(uint64 _chainLinkSubscriptionId) external onlyAdmin(msg.sender) {
-        chainLinkSubscriptionId = _chainLinkSubscriptionId;
-    }
-
-    /// @notice Set merkle root for the winner of the week
-    /// @dev Only moderator can call this method
-    /// @param _weekNumber Number of the week
-    /// @param merkle The merkle root
-    function setMerkleRoot(
-        uint256 _weekNumber,
-        bytes32 merkle
-    ) external onlyModerator(msg.sender) validWeekNumber(_weekNumber) validWinnerUpdationPeriod(_weekNumber) {
-        if (merkle[0] == 0) {
-            revert InvalidMerkleRoot();
-        }
-
-        if (weekInfos[_weekNumber].winnersMerkleRoot[0] != 0) {
-            revert MerkleRootAlreadySet();
-        }
-        weekInfos[_weekNumber].winnersMerkleRoot = merkle;
-
-        emit SetWinnerMerkelRoot(_weekNumber, merkle);
-    }
-
-    /// @notice Set merkle root for the winner
-    /// @dev Only moderator can call this method
-    /// @param _weekNumber The week number of the merkle root that will be overridden
-    /// @param merkle The merkle root
-    function updateMerkleRoot(uint256 _weekNumber, bytes32 merkle) external onlyModerator(msg.sender) validWeekNumber(_weekNumber) {
-        if (merkle[0] == 0) {
-            revert InvalidMerkleRoot();
-        }
-        weekInfos[_weekNumber].winnersMerkleRoot = merkle;
-        emit UpdateWinnerMerkelRoot(_weekNumber, merkle);
-    }
-
     /// @notice Update the week information related with timestamp
     /// @param _weekNumber Number of the week
     /// @param _startTimeStamp The start time of the event
     /// @param _prizeUpdationDuration Duration to update the prize in pool
     /// @param _winnerUpdationDuration Duration to update winner in merkle root
     /// @param _weeklyDuration How long the event will be held within a week
-    function updateWeekTimeStamp(
+    function updateWeeklyTimeStamp(
         uint256 _weekNumber,
         uint256 _startTimeStamp,
         uint256 _prizeUpdationDuration,
@@ -300,7 +299,11 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
         week.ticketDrawTimeStamp = weekInfos[_weekNumber].ticketDrawTimeStamp;
         week.claimStartTimeStamp = weekInfos[_weekNumber].claimStartTimeStamp;
         week.endTimeStamp = weekInfos[_weekNumber].endTimeStamp;
-        week.winnersMerkleRoot = weekInfos[_weekNumber].winnersMerkleRoot;
+        week.remainingSupply = weekInfos[_weekNumber].remainingSupply;
+        week.treasureCount = weekInfos[_weekNumber].treasureCount;
+        week.sponsoredTripsCount = weekInfos[_weekNumber].sponsoredTripsCount;
         week.randomNumbers = weekInfos[_weekNumber].randomNumbers;
+        week.tripWinners = weekInfos[_weekNumber].tripWinners;
+        week.availabletripsCount = weekInfos[_weekNumber].availabletripsCount;
     }
 }
