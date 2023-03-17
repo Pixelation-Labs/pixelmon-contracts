@@ -34,6 +34,10 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
     uint32 public constant Random_Number_Count = 3;
 
     /// @notice Struct object to send request to Chainlink
+    /// @param fulfilled Whether the random words has been set or not
+    /// @param exists Whether the request has been sent or not
+    /// @param weekNumber Draw week number
+    /// @param randomWords Random words from Chainlink
     struct Request {
         bool fulfilled;
         bool exists;
@@ -41,12 +45,29 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
         uint256[] randomWords;
     }
 
+    /// @notice Struct object for winner information
+    /// @param claimLimit Maximum prize that can be claimed by winner
+    /// @param claimed Number of prize that has been claimed by winner
+    /// @param treasureTypeClaimed Type of prize that is rewarded to the winner.
+    ///        'true' means the prize has been claimed by the winner. Otherwise false
     struct Winner {
         uint8 claimLimit;
         uint8 claimed;
         mapping(uint256 => bool) treasureTypeClaimed;
     }
 
+    /// @notice Struct object to store prize information
+    /// @dev If the prize is ERC721, leave tokenIds value as empty array
+    ///      if the prize is ERC1155, leave tokenId value as dummy
+    /// @param collectionAddress Contract address which is the origin of the prize
+    /// @param tokenId ERC721 Prize token ID in its Smart Contract
+    /// @param tokenIds ERC1155 Prize token ID in its Smart Contract
+    /// @param claimedToken Amount of token that has been claimed
+    /// @param contractType 1 for ERC1155, 2 for ERC721
+    /// @param treasureType Similar like ID for the prize. Prize ID is different
+    ///        than token ID, 2 token IDs can have same prize ID. Prize ID is used
+    ///        to identify the prize that claimed by winner and it's used to make
+    ///        sure the winner will get different set of prizes.
     struct Treasure {
         address collectionAddress;
         uint256 tokenId;
@@ -56,10 +77,31 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
         uint256 treasureType;
     }
 
+    /// @notice Struct object to store information about prize that distributed within a week
+    /// @param treasureIndex Index of the prize in the smart contract
+    /// @param totalSupply Total supply of the prize within a week
     struct TreasureDistribution {
         uint256 treasureIndex;
         uint256 totalSupply;
     }
+
+    /// @notice Struct object to store week information
+    /// @param startTimeStamp Start time of the event in a week
+    /// @param ticketDrawTimeStamp Time of the ticket is distributed within a week
+    /// @param claimStartTimeStamp Time where the winner can claim the prize
+    /// @param endTimeStamp End time of the event in a week
+    /// @param remainingSupply The remaining prize supply that hasn't been claimed during
+    ///        the week. This supply is the sum of every prize supply excluding Sponsored Trips
+    /// @param treasureCount How many prize option available
+    /// @param sponsoredTripsCount How many Sponsored Trips available in a week
+    /// @param availabletripsCount How many Sponsored Trips prize that has not been claimed
+    /// @param randomNumbers Chainlink random seed
+    /// @param tripWinners Winner of Sponsored Trips
+    /// @param tripWinnersMap Map that contains address of the Sponsored Trips winner.
+    ///        Map is used to easily validate whether the address is a winner rather than
+    ///        iterating every index in a list/array to find a winner
+    /// @param distributions Map of prize that is distributed during the week
+    /// @param winners List of winner of the week
     struct Week {
         uint256 startTimeStamp;
         uint256 ticketDrawTimeStamp;
@@ -76,6 +118,19 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
         mapping(address => Winner) winners;
     }
 
+    /// @notice Struct object for week information
+    /// @dev This struct is only used as return type for getWeekInfo method
+    /// @param startTimeStamp Start time of the event in a week
+    /// @param ticketDrawTimeStamp Time of the ticket is distributed within a week
+    /// @param claimStartTimeStamp Time where the winner can claim the prize
+    /// @param endTimeStamp End time of the event in a week
+    /// @param remainingSupply The remaining prize supply that hasn't been claimed during
+    ///        the week. This supply is the sum of every prize supply excluding Sponsored Trips
+    /// @param treasureCount How many prize option available
+    /// @param sponsoredTripsCount How many Sponsored Trips available in a week
+    /// @param randomNumbers Chainlink random seed
+    /// @param tripWinners Winner of Sponsored Trips
+    /// @param availabletripsCount How many Sponsored Trips prize that has not been claimed
     struct WeekData {
         uint256 startTimeStamp;
         uint256 ticketDrawTimeStamp;
@@ -135,7 +190,7 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
     }
 
     /// @notice Check whether block.timestamp is within the schedule
-    ///         to update pool
+    ///         to set prize distribution
     /// @param _weekNumber Number of the week
     modifier validTreaureDistributionPeriod(uint256 _weekNumber) {
         if (!(block.timestamp >= weekInfos[_weekNumber].startTimeStamp && block.timestamp < weekInfos[_weekNumber].ticketDrawTimeStamp)) {
@@ -163,8 +218,11 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
         _;
     }
 
-    modifier validArrayLength(uint256 lenght1, uint256 length2) {
-        if (lenght1 != length2) {
+    /// @notice Check whether both array input has the same length
+    /// @param length1 First length of the array input
+    /// @param length2 Second length of the array input
+    modifier validArrayLength(uint256 length1, uint256 length2) {
+        if (length1 != length2) {
             revert InvalidLength();
         }
         _;
@@ -175,6 +233,9 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
     /// @param RandomWords The input random words
     event ChainlinkRandomNumberSet(uint256 weekNumber, uint256[] RandomWords);
 
+    /// @notice Emit when winners of the week has been selected
+    /// @param weekNumber The week number
+    /// @param tripWinners The winner for Sponsored Trips prize
     event WeeklyWinnersSet(uint256 weekNumber, address[] tripWinners);
 
     constructor(address _vrfCoordinator, uint64 _chainLinkSubscriptionId, bytes32 _keyHash) VRFConsumerBaseV2(_vrfCoordinator) {
@@ -213,7 +274,7 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
         chainLinkSubscriptionId = _chainLinkSubscriptionId;
     }
 
-    // @notice Generate random number from Chainlink
+    /// @notice Generate random number from Chainlink
     /// @param _weekNumber Number of the week
     /// @return requestId Chainlink requestId
     function generateChainLinkRandomNumbers(
@@ -294,6 +355,7 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
 
     /// @notice Get week informations for specific week
     /// @param _weekNumber The number of the week
+    /// @return week Information for specific week
     function getWeekInfo(uint256 _weekNumber) external view returns (WeekData memory week) {
         week.startTimeStamp = weekInfos[_weekNumber].startTimeStamp;
         week.ticketDrawTimeStamp = weekInfos[_weekNumber].ticketDrawTimeStamp;
