@@ -238,6 +238,11 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
     /// @param tripWinners The winner for Sponsored Trips prize
     event WeeklyWinnersSet(uint256 weekNumber, address[] tripWinners);
 
+    /// @notice Constructor function
+    /// @param _vrfCoordinator The address of the Chainlink VRF Coordinator contract
+    /// @param _chainLinkSubscriptionId The Chainlink Subscription ID that is funded to use VRF
+    /// @param _keyHash The gas lane to use, which specifies the maximum gas price to bump to.
+    ///        More https://docs.chain.link/docs/vrf/v2/subscription/supported-networks/#configurations
     constructor(address _vrfCoordinator, uint64 _chainLinkSubscriptionId, bytes32 _keyHash) VRFConsumerBaseV2(_vrfCoordinator) {
         COORDINATOR = VRFCoordinatorV2Interface(_vrfCoordinator);
         keyHash = _keyHash;
