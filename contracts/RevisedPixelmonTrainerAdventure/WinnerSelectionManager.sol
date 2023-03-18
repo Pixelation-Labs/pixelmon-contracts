@@ -278,7 +278,7 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
     }
 
     /// @notice Set chainLinkSubscriptionId parameter when sending request to Chainlink
-    /// @param _chainLinkSubscriptionId chainlink subcription Id
+    /// @param _chainLinkSubscriptionId Chainlink subscription Id
     function setChainlinkSubscriptionId(uint64 _chainLinkSubscriptionId) external onlyAdmin(msg.sender) {
         chainLinkSubscriptionId = _chainLinkSubscriptionId;
     }
