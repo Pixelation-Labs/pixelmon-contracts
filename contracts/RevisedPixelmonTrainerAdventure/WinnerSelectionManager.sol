@@ -251,12 +251,16 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
 
     /// @notice Set "Admin" role for specific address, 'true' means it has privilege
     /// @dev Only owner can call this method
+    /// @param _walletAddress The address that will be set as admin
+    /// @param _flag 'true' means the address is an admin
     function setAdminWallet(address _walletAddress, bool _flag) external onlyOwner {
         adminWallets[_walletAddress] = _flag;
     }
 
     /// @notice Set "Moderator" role for specific address, 'true' means it has privilege
     /// @dev Only owner can call this method
+    /// @param _walletAddress The address that will be set as moderator
+    /// @param _flag 'true' means the address is a moderator
     function setModeratorWallet(address _walletAddress, bool _flag) external onlyOwner {
         moderatorWallets[_walletAddress] = _flag;
     }
