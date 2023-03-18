@@ -55,7 +55,8 @@ To Resolve the issue of batch evolve pixelmon NFT. We are creating the new Pixel
 7. User will be able to claim the E1 and E2 Pixelmon after the staking time lock period.
 8. We will keep a time lock flag. if the flag is not active then user will be able to claim it any time. This flag will be updatable by the contract owner. 
 5. The contract owner will be able to set the signer wallet address.
-6. The contract will be able to set the pixelmon contract address and the serum token address.
+6. The contract owner will be able to set the pixelmon contract address and the serum token address.
+7. Contract owner will be able to rescue token with emergency rescue method. 
 
 
 ### Usecase Diagram
@@ -92,6 +93,7 @@ To Resolve the issue of batch evolve pixelmon NFT. We are creating the new Pixel
     ✔ Attack test from attacker contract
     ✔ Duplicate serum ID check
     ✔ Duplicate Pixelmon ID check
+    ✔ Owner will be able to rescue token in emergency
 
 ```
 ## Unit test

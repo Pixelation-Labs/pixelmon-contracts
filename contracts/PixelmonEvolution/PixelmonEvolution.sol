@@ -337,6 +337,16 @@ contract PixelmonEvolution is Ownable, EIP712, ReentrancyGuard {
         }
     }
 
+    /// @dev Emergency Token Rescue Method
+    /// @notice Only the contract owner will have the access to rescue
+    /// @param tokenId Token Id to rescue
+    /// @param collectionAddress Token collection address
+    /// @param receiver Receiver wallet address
+    function emergencyRescue(uint256 tokenId, address collectionAddress, address receiver) external onlyOwner {
+        IPixelmon NFTContract = IPixelmon(collectionAddress);
+        NFTContract.safeTransferFrom(address(this), receiver, tokenId);
+    }
+
     /// @dev Whenever an {IERC721} `tokenId` token is transferred to this contract via {IERC721-safeTransferFrom}
     /// by `operator` from `from`, this function is called.
     ///
