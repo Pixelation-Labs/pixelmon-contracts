@@ -39,7 +39,7 @@ The existing functionality between the Pixelmon NFT and Serum token is given bel
 * The evolve does not take input as batch. We can not provide multiple token ID in an array for batch evolve method.
 
 ## Product document
-* [Evolution 2 Pixelmon](https://docs.google.com/document/d/1VsyHtsgHSxEljc-UfKdUyCZwY4ToL-EK5FSodybV6xI/edit#heading=h.gjdgxs)
+* [Evolution 2 Pixelmon](https://docs.google.com/document/d/1BYKGpqr2Hoa5VYHa3Ri4rGI7N6N-_2fj4fzblb5z36Y/edit?usp=sharing)
 * [Evolution with hard staking](https://docs.google.com/document/d/1VsyHtsgHSxEljc-UfKdUyCZwY4ToL-EK5FSodybV6xI/edit?usp=sharing)
 
 # Proposed solution
