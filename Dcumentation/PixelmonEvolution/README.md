@@ -90,6 +90,8 @@ To Resolve the issue of batch evolve pixelmon NFT. We are creating the new Pixel
     ✔ user will be able to claim instantly if time lock is not active 
     ✔ user will not be able to claim before the time lock period 
     ✔ Attack test from attacker contract
+    ✔ Duplicate serum ID check
+    ✔ Duplicate Pixelmon ID check
 
 ```
 ## Unit test

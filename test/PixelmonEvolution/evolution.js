@@ -492,6 +492,96 @@ describe("Pixelmon Evolution Contract Functionality", function () {
         expect(owner).to.equal(anonymousUserWallet.address);
     });
 
+    it("Duplicate serum ID check", async function () {
+        const pixelmonTokenIds = [1, 2, 3, 4];
+        const serumIds = [2, 2];
+        const amounts = [1, 3];
+        const evolutionStage = 2;
+        const nonce = 0;
+        const stakedFor = 10;
+
+        const signature = await createSignature(
+            pixelmonTokenIds,
+            serumIds,
+            amounts,
+            evolutionStage,
+            nonce,
+            stakedFor,
+            anonymousUserWallet.address,
+            contract,
+            signerWallet
+        );
+
+        await mockFTContract.connect(anonymousUserWallet).mint(2, 1);
+        await mockFTContract.connect(anonymousUserWallet).mint(2, 3);
+        await mockFTContract.connect(anonymousUserWallet).setApprovalForAll(contract.address, true);
+
+        await mockNFTContract.safeBatchMint(anonymousUserWallet.address, 10);
+        await mockNFTContract.connect(anonymousUserWallet).setApprovalForAll(contract.address, true);
+        await contract.connect(anonymousUserWallet).evolvePixelmon(pixelmonTokenIds, serumIds, amounts, evolutionStage, nonce, stakedFor, signature);
+    
+        await sleep((stakedFor + 1) * 1000);
+        await expect(
+            contract.claimPixelmonToken([1,2,3,4,10005,10006,10007,10008])
+        ).to.be.revertedWithCustomError(contract, "InvalidOwner");
+        await contract.connect(anonymousUserWallet).claimPixelmonToken([1,2,3,4,10005,10006,10007,10008]);
+
+        let owner = await mockNFTContract.ownerOf(1);
+        expect(owner).to.equal(anonymousUserWallet.address);
+
+        owner = await mockNFTContract.ownerOf(2);
+        expect(owner).to.equal(anonymousUserWallet.address);
+
+        owner = await mockNFTContract.ownerOf(3);
+        expect(owner).to.equal(anonymousUserWallet.address);
+
+        owner = await mockNFTContract.ownerOf(4);
+        expect(owner).to.equal(anonymousUserWallet.address);
+
+        owner = await mockNFTContract.ownerOf(10005);
+        expect(owner).to.equal(anonymousUserWallet.address);
+
+        owner = await mockNFTContract.ownerOf(10006);
+        expect(owner).to.equal(anonymousUserWallet.address);
+
+        owner = await mockNFTContract.ownerOf(10007);
+        expect(owner).to.equal(anonymousUserWallet.address);
+
+        owner = await mockNFTContract.ownerOf(10008);
+        expect(owner).to.equal(anonymousUserWallet.address);
+    });
+
+    it("Duplicate Pixelmon ID check", async function () {
+        const pixelmonTokenIds = [1, 2, 2, 2];
+        const serumIds = [1, 2];
+        const amounts = [1, 3];
+        const evolutionStage = 2;
+        const nonce = 0;
+        const stakedFor = 10;
+
+        const signature = await createSignature(
+            pixelmonTokenIds,
+            serumIds,
+            amounts,
+            evolutionStage,
+            nonce,
+            stakedFor,
+            anonymousUserWallet.address,
+            contract,
+            signerWallet
+        );
+
+        await mockFTContract.connect(anonymousUserWallet).mint(1, 1);
+        await mockFTContract.connect(anonymousUserWallet).mint(2, 3);
+        await mockFTContract.connect(anonymousUserWallet).setApprovalForAll(contract.address, true);
+
+        await mockNFTContract.safeBatchMint(anonymousUserWallet.address, 10);
+        await mockNFTContract.connect(anonymousUserWallet).setApprovalForAll(contract.address, true);
+        await expect(
+            contract.connect(anonymousUserWallet).evolvePixelmon(pixelmonTokenIds, serumIds, amounts, evolutionStage, nonce, stakedFor, signature)
+        ).to.be.revertedWith('ERC721: transfer from incorrect owner');
+    });
+
     it("user will be able to claim instantly if timelock is not active", async function () {
         const pixelmonTokenIds = [1, 2, 3, 4];
         const serumIds = [1, 2];
