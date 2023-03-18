@@ -527,12 +527,6 @@ describe("Pixelmon Evolution Contract Functionality", function () {
 
         await contract.connect(anonymousUserWallet).evolvePixelmon(pixelmonTokenIds, serumIds, amounts, evolutionStage, nonce, stakedFor, signature);
     
-
-
-        // await sleep((stakedFor + 1) * 1000);
-        // await expect(
-        //     contract.claimPixelmonToken([1,2,3,4,10005,10006,10007,10008])
-        // ).to.be.revertedWithCustomError(contract, "InvalidOwner");
         await contract.connect(anonymousUserWallet).claimPixelmonToken([1,2,3,4,10005,10006,10007,10008]);
 
         let owner = await mockNFTContract.ownerOf(1);
