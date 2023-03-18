@@ -49,7 +49,7 @@ To Resolve the issue of batch evolve pixelmon NFT. We are creating the new Pixel
 1. It will have a `evolvePixelmon` method. This method will take the Pixelmon and Serum Token information in batch.
 2. It will be able to validate the pixelmon, serum token, token owner information, nonce, staking time period with the signature.
 3. Then it will transfer the serum token to the burner address `0x000000000000000000000000000000000000dEaD`.
-4. The it will call the `mintEvolvedPixelmon` method in the pixelmon NFT smart contract.
+4. Then it will call the `mintEvolvedPixelmon` method in the pixelmon NFT smart contract.
 5. the new evolved pixelmon will be minted and transferred to the `PixelmonEvolution` (this new) smart contract. And it's information (by whom and when it can be claimed) will be saved in the smart contract.
 6. The Pixelmon NFT that has been used for evolution will also be staked in this `PixelmonEvolution` (this new) smart contract for 30 day time period.
 7. User will be able to claim the E1 and E2 Pixelmon after the staking time lock period.
@@ -114,7 +114,7 @@ To deploy this smart contract in the Mainnet or in the Goerli test net the follo
 2. Estimated cost: [Estimated Cost for Smart Contract](https://docs.google.com/spreadsheets/d/1H0VSCUvdccVWhFKvhpKM4cyH700vjN-mx2fSKlq8oKg/edit#gid=709143748)
 
 ## Smart Contract Deployment Steps
-1. Download the smart contract from [git repository](https://github.com/Pixelation-Labs/Pixelmon-evolution-smart-contract).  
+1. Download the smart contract from [git repository](https://github.com/Pixelation-Labs/pixelmon-contracts).  
 2. Go to the repository with the command
 ``` 
 cd Pixelmon-evolution-smart-contract

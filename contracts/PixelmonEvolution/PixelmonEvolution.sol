@@ -31,7 +31,7 @@ contract PixelmonEvolution is Ownable, EIP712, ReentrancyGuard {
     string public constant SIGNING_DOMAIN = "Pixelmon-Evolution";
     /// @dev signature version for creating and verifying signature
     string public constant SIGNATURE_VERSION = "1";
-    /// @dev Eveolved Pixelmon tokenId to map staked token information
+    /// @dev Evolved Pixelmon tokenId to map staked token information
     uint256 public nextEvolvePixelmonId = 10005;
     /// @dev Time lock flag for unstaking
     bool public isTimeLockActive = true;
@@ -80,7 +80,7 @@ contract PixelmonEvolution is Ownable, EIP712, ReentrancyGuard {
     /// @param pixelmonTokenIds Pixelmon NFT tokenId list
     /// @param serumTokenIds Serum tokenId list
     /// @param serumAmounts Serum token amount list
-    /// @param evolutionStage Pixelmon evlution stage
+    /// @param evolutionStage Pixelmon evolution stage
     /// @param evolvedTokenStartingId Evolved first pixelmon tokenId
     /// @param message String message to identify the event
     event PixelmonBatchEvolve(
