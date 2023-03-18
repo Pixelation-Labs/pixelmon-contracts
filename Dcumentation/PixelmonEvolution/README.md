@@ -213,3 +213,14 @@ yarn publish:contract:goerli <NEW_CONTRACT_ADDRESS> <PIXELMON_CONTRACT> <SERUM_C
     }
 
 ```
+
+## Smart Contract set up steps
+1. Check the pixelmon contract successfully set
+2. Check the serum contract successfully set
+3. Check the Signer wallet successfully set
+4. Set new evolution smart contract in the pixelmon smart contract
+5. Check the next evolve pixelmon tokenId
+6. From user wallet set approve for all in serum contract
+7. From user wallet set approve for all in pixelmon contract
+8. Get signature from signer wallet
+9. Evolve pixelmon
