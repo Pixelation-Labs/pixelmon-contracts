@@ -166,7 +166,7 @@ yarn publish:contract:goerli <NEW_CONTRACT_ADDRESS> <PIXELMON_CONTRACT> <SERUM_C
 
 10. In serum contract for user wallet set approve for all for the new evolution contract
 
-11. call the `eveolvePixelmon` contract from user wallet
+11. call the `evolvePixelmon` contract from user wallet
 
 **Signature Code**
 ```nodejs
