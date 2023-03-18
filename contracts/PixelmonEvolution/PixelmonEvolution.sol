@@ -157,7 +157,7 @@ contract PixelmonEvolution is Ownable, EIP712, ReentrancyGuard {
 
     /// @notice Sets Signer wallet address
     /// @dev This function can only be executed by the contract owner
-    /// @param signer Signer wallet address for signature verifition
+    /// @param signer Signer wallet address for signature verification
     function setSignerAddress(address signer) external onlyOwner {
         SIGNER = signer;
     }
