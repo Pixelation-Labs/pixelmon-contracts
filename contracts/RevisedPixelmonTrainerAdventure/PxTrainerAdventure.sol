@@ -7,27 +7,55 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./WinnerSelectionManager.sol";
 import "./Utils.sol";
 
-/// @notice Thrown when treasure is already claimed by the same user in the same week
-error ALreadyClaimed();
-/// @notice Thrown when address is not part of the winner Merkle Tree
+/// @notice Thrown when all prizes are already claimed
+error AlreadyClaimed();
+/// @notice Thrown when address is not a winner
 error NotAWinner();
+/// @notice Thrown when input is not as expected condition
 error InvalidInput();
+/// @notice Thrown when inputting non-exist treasure index
 error InvalidTreasureIndex();
+/// @notice Thrown when no available prizes to be transferred to the winner
 error InsufficientToken();
+/// @notice Thrown when not enough winner to be selected to get Sponsored Trips
 error NotEnoughWinnersForSponsoredTrip();
 
 contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
+    /// @notice code number for ERC1155 token
     uint256 public constant ERC_1155_TYPE = 1;
+    /// @notice code number for ERC721 token
     uint256 public constant ERC_721_TYPE = 2;
 
+    /// @notice Wallet address that keeps all prizes
     address public vaultWalletAddress;
 
+    /// @notice Claim ID
+    /// @dev This can be used to track the claimed prize
     uint256 public claimIndexCount;
+    /// @notice Total prize options
     uint256 public totalTreasures;
+    /// @notice Variable to store Sponsored Trips prize information such
+    ///         as the collection address, token ID, amount, and token type
     Treasure public sponsoredTrip;
+    /// @notice Variable to store prize information such as the collection
+    ///         address, token ID, amount, and token type
+    /// @custom:key prize ID
+    /// @custom:value Prize information
     mapping(uint256 => Treasure) public treasures;
+    /// @notice List of address who owns Sponsored Trips
+    /// @custom:key wallet address
+    /// @custom:value 'true' means already own Sponsored Trips
     mapping(address => bool) public sponsoredTripWinners;
 
+    /// @notice Emit when a prize is claimed
+    /// @dev The requestId input can use the value of claimIndexCount
+    /// @param weekNumber Week number when the prize is claimed
+    /// @param requestId Claim ID
+    /// @param userWallet Wallet address who claims the prize
+    /// @param collectionAddress The origin address of the prize
+    /// @param tokenId The prize token ID in its origin address
+    /// @param tokenType The token type in its origin address
+    /// @param randomNumber The random number generated when claiming the prize
     event TreasureTransferred(
         uint256 weekNumber,
         uint256 requestId,
@@ -38,16 +66,28 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
         uint256 randomNumber
     );
 
+    /// @notice The contract constructor
+    /// @dev The constructor parameters only used as input
+    ///      from WinnerSelectionManager contract
+    /// @param _vrfCoordinator The address of the Chainlink VRF Coordinator contract
+    /// @param _chainLinkSubscriptionId The Chainlink Subscription ID that is funded to use VRF
+    /// @param _keyHash The gas lane to use, which specifies the maximum gas price to bump to.
+    ///        More https://docs.chain.link/docs/vrf/v2/subscription/supported-networks/#configurations
     constructor(
         address _vrfCoordinator,
         uint64 _chainLinkSubscriptionId,
         bytes32 _keyHash
     ) WinnerSelectionManager(_vrfCoordinator, _chainLinkSubscriptionId, _keyHash) {}
 
+    /// @notice Set address to become vault
+    /// @param _walletAddress Wallet address that will be the vault
     function setVaultWalletAddress(address _walletAddress) external onlyOwner {
         vaultWalletAddress = _walletAddress;
     }
 
+    /// @notice Add prize to the smart contract
+    /// @dev Only admin can call this method
+    /// @param _treasure Prize information according to Treasure struct
     function addTreasures(Treasure memory _treasure) external onlyAdmin(msg.sender) {
         totalTreasures++;
         if (_treasure.claimedToken != 0 || (_treasure.contractType != 1 && _treasure.contractType != 2)) {
@@ -59,6 +99,9 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
         treasures[totalTreasures] = _treasure;
     }
 
+    /// @notice Add Sponsored Trips prize to the smart contract
+    /// @dev Can only be called by administrators
+    /// @param _treasure Sponsored Trips information according to Treasure struct
     function addSponsoredTripTreasure(Treasure memory _treasure) external onlyAdmin(msg.sender) {
         if (_treasure.claimedToken != 0 || _treasure.contractType != 1 || _treasure.tokenIds.length > 0) {
             revert InvalidInput();
@@ -66,6 +109,9 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
         sponsoredTrip = _treasure;
     }
 
+    /// @notice Claim prize for winner
+    /// @dev Only winner of the week can call this method
+    /// @param _weekNumber The week number to claim prize
     function claimTreasure(uint256 _weekNumber) external nonReentrant noContracts {
         if (!(block.timestamp >= weekInfos[_weekNumber].claimStartTimeStamp && block.timestamp <= weekInfos[_weekNumber].endTimeStamp)) {
             revert InvalidClaimingPeriod();
@@ -75,7 +121,7 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
             revert NotAWinner();
         }
         if (week.winners[msg.sender].claimed == weekInfos[_weekNumber].winners[msg.sender].claimLimit) {
-            revert ALreadyClaimed();
+            revert AlreadyClaimed();
         }
         if (week.winners[msg.sender].claimed == 0) {
             primaryClaim(_weekNumber);
@@ -84,6 +130,10 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
         }
     }
 
+    /// @notice Method to claim the first prize
+    /// @dev This method is also used to claim Sponsor Trips if
+    ///      the winner selected to get one
+    /// @param _weekNumber The week number to claim prize
     function primaryClaim(uint256 _weekNumber) internal {
         Week storage week = weekInfos[_weekNumber];
         if (week.tripWinnersMap[msg.sender]) {
@@ -143,6 +193,10 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
         }
     }
 
+    /// @notice Method to claim the next prize
+    /// @dev This method will give different prizes than the first
+    ///      one if there still other prize option available
+    /// @param _weekNumber The week number to claim prize
     function secondaryClaim(uint256 _weekNumber) internal {
         Week storage week = weekInfos[_weekNumber];
         uint256 remaining;
@@ -207,6 +261,10 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
         );
     }
 
+    /// @notice Transfer token from vault to the method caller's wallet address
+    /// @dev This method will be used in a public method and user who call the
+    ///      method will get a token from vault
+    /// @param _treasure Prize to transfer
     function transferToken(Treasure memory _treasure) internal {
         if (_treasure.contractType == ERC_1155_TYPE) {
             IERC1155 erc1155Contract = IERC1155(_treasure.collectionAddress);
@@ -221,6 +279,11 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
         }
     }
 
+    /// @notice Set prize that will be awarded to the winner of the week
+    /// @dev Only admin can call this method
+    /// @param _weekNumber The week number
+    /// @param _treasureindexes The index of the treasure in 'treasures' mapping variable
+    /// @param _counts Amount of treasure that will be available to claim during the week
     function setWeeklyTreasureDistribution(
         uint256 _weekNumber,
         uint256[] memory _treasureindexes,
@@ -239,6 +302,9 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
         }
     }
 
+    /// @notice Set amount of Sponsored Trips prize that will be awarded to the winner of the week
+    /// @param _weekNumber The week number
+    /// @param _count Amount of Sponsored Trips that will be distributed during the week
     function setWeeklySponsoredTripDistribution(
         uint256 _weekNumber,
         uint256 _count
@@ -247,6 +313,10 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
         weekInfos[_weekNumber].availabletripsCount = _count;
     }
 
+    /// @notice Set a list of winner of the week
+    /// @param _weekNumber The week number
+    /// @param _winners List of wallet addresses that become the winner
+    /// @param _counts Amount of prize that awarded to the winner
     function updateWeeklyWinners(
         uint256 _weekNumber,
         address[] memory _winners,
@@ -285,6 +355,9 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
         emit WeeklyWinnersSet(_weekNumber, tmp);
     }
 
+    /// @notice Add a list of wallet addresses that already owns Sponsored Trips
+    /// @param _previousWinners List of addresses that already owns Sponsored Trips
+    /// @param _flags 'true' means already own Sponsored Trips
     function setSponsoredTripWinnerMap(
         address[] memory _previousWinners,
         bool[] memory _flags

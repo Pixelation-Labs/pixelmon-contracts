@@ -15,7 +15,7 @@ error InvalidTimeStamp();
 /// @notice Thrown when inputting week number less than equal to the current week number
 ///         and when the start week number is greater than end week number
 error InvalidWeekNumber();
-/// @notice Thrown when claiming duration is less than a week
+/// @notice Thrown when week duration is less than total period for updating prize and set the winners
 error InvalidDuration();
 /// @notice Thrown when block.timestamp is less than end timestamp of the current week
 ///         or more than the start timestamp in the next week
@@ -26,7 +26,7 @@ error InvalidClaimingPeriod();
 error NotAdmin();
 /// @notice Thrown when address has no "Moderator" role
 error NotModerator();
-
+/// @notice Thrown when length of both arrays are not equal
 error InvalidLength();
 
 contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
