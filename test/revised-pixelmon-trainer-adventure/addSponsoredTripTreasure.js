@@ -1,10 +1,10 @@
 const {expect} = require("chai");
 const {ErrorNotOwner} = require("./constant")
 
-const addTreasure = async (contract, testUsers) => {
+const addSponsoredTripTreasure = async (contract, testUsers) => {
     const [owner, admin] = testUsers;
-    describe("Add Treasure", () => {
-        it("Add Treasure as Admin", async () => {
+    describe("addSponsoredTripTreasure", () => {
+        it("addSponsoredTripTreasure as Admin", async () => {
             await contract.setAdminWallet(admin.address, true);
             let isAdmin = await contract.adminWallets(admin.address);
             expect(isAdmin).to.equal(true);
@@ -18,20 +18,17 @@ const addTreasure = async (contract, testUsers) => {
                 treasureType: 1
             };
 
-            let totalTreasure = await contract.totalTreasures();
-            expect(Number(totalTreasure)).to.equal(0);
-            await contract.connect(admin).addTreasures(treasure);
-            totalTreasure = await contract.totalTreasures();
-            expect(Number(totalTreasure)).to.equal(1);
             
-            let treasureData = await contract.treasures(Number(totalTreasure));
+            await contract.connect(admin).addSponsoredTripTreasure(treasure);
+
+            let treasureData = await contract.sponsoredTrip();
             expect(treasureData.collectionAddress).to.equal(treasure.collectionAddress);
             expect(Number(treasureData.tokenId)).to.equal(treasure.tokenId);
             expect(Number(treasureData.claimedToken)).to.equal(treasure.claimedToken);
             expect(Number(treasureData.contractType)).to.equal(treasure.contractType);
             expect(Number(treasureData.treasureType)).to.equal(treasure.treasureType);
 
-            // Note: negative test
+            // // Note: negative test
             treasure = {
                 collectionAddress: owner.address,
                 tokenId: 1,
@@ -41,7 +38,7 @@ const addTreasure = async (contract, testUsers) => {
                 treasureType: 1
             };
 
-            await expect(contract.connect(admin).addTreasures(treasure))
+            await expect(contract.connect(admin).addSponsoredTripTreasure(treasure))
                 .to.be.revertedWithCustomError(contract, "InvalidInput");
 
             treasure = {
@@ -53,17 +50,17 @@ const addTreasure = async (contract, testUsers) => {
                 treasureType: 1
             };
     
-            await expect(contract.connect(admin).addTreasures(treasure)).to.be.revertedWithCustomError(contract, "InvalidInput");
+            await expect(contract.connect(admin).addSponsoredTripTreasure(treasure)).to.be.revertedWithCustomError(contract, "InvalidInput");
 
             treasure = {
                 collectionAddress: owner.address,
                 tokenId: 1,
                 tokenIds: [],
                 claimedToken: 0,
-                contractType: 3,
+                contractType: 2,
                 treasureType: 1
             };
-            await expect(contract.connect(admin).addTreasures(treasure)).to.be.revertedWithCustomError(contract, "InvalidInput");
+            await expect(contract.connect(admin).addSponsoredTripTreasure(treasure)).to.be.revertedWithCustomError(contract, "InvalidInput");
 
             treasure = {
                 collectionAddress: owner.address,
@@ -74,32 +71,12 @@ const addTreasure = async (contract, testUsers) => {
                 treasureType: 1
             };
 
-            await expect(contract.connect(admin).addTreasures(treasure))
+            await expect(contract.connect(admin).addSponsoredTripTreasure(treasure))
                 .to.be.revertedWithCustomError(contract, "InvalidInput");
             
-            treasure = {
-                collectionAddress: owner.address,
-                tokenId: 1,
-                tokenIds: [],
-                claimedToken: 0,
-                contractType: 2,
-                treasureType: 1
-            };
-    
-            await expect(contract.connect(admin).addTreasures(treasure)).to.be.revertedWithCustomError(contract, "InvalidInput");
-        
-            treasure = {
-                collectionAddress: owner.address,
-                tokenId: 1,
-                tokenIds: [1,2,3],
-                claimedToken: 0,
-                contractType: 2,
-                treasureType: 1
-            };
-            await contract.connect(admin).addTreasures(treasure);
         });
 
-        it("Only admin can add treasure", async () => {
+        it("Only admin can addSponsoredTripTreasure", async () => {
 
             let treasure = {
                 collectionAddress: owner.address,
@@ -110,10 +87,10 @@ const addTreasure = async (contract, testUsers) => {
                 treasureType: 1
             };
 
-            await expect(contract.connect(owner).addTreasures(treasure))
+            await expect(contract.connect(owner).addSponsoredTripTreasure(treasure))
                 .to.be.revertedWithCustomError(contract, "NotAdmin");
         })
     })
 }
 
-module.exports = {addTreasure}
+module.exports = {addSponsoredTripTreasure}

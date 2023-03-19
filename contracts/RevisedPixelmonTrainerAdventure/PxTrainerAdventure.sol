@@ -103,7 +103,7 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
     /// @dev Can only be called by administrators
     /// @param _treasure Sponsored Trips information according to Treasure struct
     function addSponsoredTripTreasure(Treasure memory _treasure) external onlyAdmin(msg.sender) {
-        if (_treasure.claimedToken != 0 || _treasure.contractType != 1 || _treasure.tokenIds.length > 0) {
+        if (_treasure.claimedToken != 0 || _treasure.contractType != ERC_1155_TYPE || _treasure.tokenIds.length > 0) {
             revert InvalidInput();
         }
         sponsoredTrip = _treasure;
