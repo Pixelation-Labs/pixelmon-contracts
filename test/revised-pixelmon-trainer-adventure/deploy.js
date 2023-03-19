@@ -12,6 +12,7 @@ const { addTreasure } = require("./addTreasure");
 const { addSponsoredTripTreasure } = require("./addSponsoredTripTreasure");
 const { setSponsoredTripWinnerMap } = require("./setSponsoredTripWinnerMap");
 const { updateWeeklyWinners } = require("./updateWeeklyWinners");
+const { testSignature } = require("./signatureTest");
 
 const contractName = "PxTrainerAdventure";
 
@@ -63,6 +64,37 @@ const addPrizeToVault = async (vault) => {
     return collection;
 };
 
+const createSignature = async (weekNumber, claimIndex, walletAddress, signer, contract) => {
+
+    const signatureObject = {
+        weekNumber: weekNumber,
+        claimIndex: claimIndex, // for a particular if a user claim first time then the it will be 0, for second claim it will be 1. For the second week it will start from 0 again
+        walletAddress: walletAddress
+    };
+
+    // For goerli network it will be 5, for mainnet it will be 1 
+    const chainId = 31337;
+    const SIGNING_DOMAIN_NAME = "Pixelmon-Trainer-Adventure";
+    const SIGNING_DOMAIN_VERSION = "1";
+    const types = {
+        TrainerAdventureSignature: [
+            { name: "weekNumber", type: "uint256" },
+            { name: "claimIndex", type: "uint256" },
+            { name: "walletAddress", type: "address" },
+        ],
+    };
+
+    const domain = {
+        name: SIGNING_DOMAIN_NAME,
+        version: SIGNING_DOMAIN_VERSION,
+        verifyingContract: contract.address,
+        chainId,
+    };
+
+    const signature = await signer._signTypedData(domain, types, signatureObject);
+    return signature;
+}
+
 describe(`${contractName} contract`, () => {
     let contract;
     let testUsers;
@@ -104,5 +136,6 @@ describe(`${contractName} contract`, () => {
         await addSponsoredTripTreasure(contract, testUsers, collection);
         await setSponsoredTripWinnerMap(contract, testUsers);
         await updateWeeklyWinners(contract, testUsers);
+        await testSignature(contract, testUsers, createSignature);
     })
 })
