@@ -1,7 +1,6 @@
-const {expect} = require("chai");
-const {ErrorNotOwner} = require("./constant")
+const { expect } = require("chai");
 
-const addSponsoredTripTreasure = async (contract, testUsers) => {
+const addSponsoredTripTreasure = async (contract, testUsers, collection) => {
     const [owner, admin] = testUsers;
     describe("addSponsoredTripTreasure", () => {
         it("addSponsoredTripTreasure as Admin", async () => {
@@ -10,15 +9,15 @@ const addSponsoredTripTreasure = async (contract, testUsers) => {
             expect(isAdmin).to.equal(true);
 
             let treasure = {
-                collectionAddress: owner.address,
+                collectionAddress: collection.sponsoredTrip,
                 tokenId: 1,
                 tokenIds: [],
                 claimedToken: 0,
-                contractType: 1,
+                contractType: await contract.ERC_1155_TYPE(),
                 treasureType: 1
             };
 
-            
+
             await contract.connect(admin).addSponsoredTripTreasure(treasure);
 
             let treasureData = await contract.sponsoredTrip();
@@ -49,7 +48,7 @@ const addSponsoredTripTreasure = async (contract, testUsers) => {
                 contractType: 0,
                 treasureType: 1
             };
-    
+
             await expect(contract.connect(admin).addSponsoredTripTreasure(treasure)).to.be.revertedWithCustomError(contract, "InvalidInput");
 
             treasure = {
@@ -65,7 +64,7 @@ const addSponsoredTripTreasure = async (contract, testUsers) => {
             treasure = {
                 collectionAddress: owner.address,
                 tokenId: 1,
-                tokenIds: [1,2],
+                tokenIds: [1, 2],
                 claimedToken: 0,
                 contractType: 1,
                 treasureType: 1
@@ -73,7 +72,7 @@ const addSponsoredTripTreasure = async (contract, testUsers) => {
 
             await expect(contract.connect(admin).addSponsoredTripTreasure(treasure))
                 .to.be.revertedWithCustomError(contract, "InvalidInput");
-            
+
         });
 
         it("Only admin can addSponsoredTripTreasure", async () => {
@@ -89,8 +88,8 @@ const addSponsoredTripTreasure = async (contract, testUsers) => {
 
             await expect(contract.connect(owner).addSponsoredTripTreasure(treasure))
                 .to.be.revertedWithCustomError(contract, "NotAdmin");
-        })
-    })
-}
+        });
+    });
+};
 
-module.exports = {addSponsoredTripTreasure}
+module.exports = { addSponsoredTripTreasure };
