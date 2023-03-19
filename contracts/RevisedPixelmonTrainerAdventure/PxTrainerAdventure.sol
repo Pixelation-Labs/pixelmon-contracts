@@ -90,10 +90,10 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
     /// @param _treasure Prize information according to Treasure struct
     function addTreasures(Treasure memory _treasure) external onlyAdmin(msg.sender) {
         totalTreasures++;
-        if (_treasure.claimedToken != 0 || (_treasure.contractType != 1 && _treasure.contractType != 2)) {
+        if (_treasure.claimedToken != 0 || (_treasure.contractType != ERC_1155_TYPE && _treasure.contractType != ERC_721_TYPE)) {
             revert InvalidInput();
         }
-        if ((_treasure.contractType == 1 && _treasure.tokenIds.length > 0) || (_treasure.contractType == 2 && _treasure.tokenIds.length == 0)) {
+        if ((_treasure.contractType == ERC_1155_TYPE && _treasure.tokenIds.length > 0) || (_treasure.contractType == ERC_721_TYPE && _treasure.tokenIds.length == 0)) {
             revert InvalidInput();
         }
         treasures[totalTreasures] = _treasure;

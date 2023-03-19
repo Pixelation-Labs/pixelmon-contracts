@@ -8,6 +8,7 @@ const {setChainlinkSubscriptionId} = require("./setChainlinkSubscriptionId");
 const {setWeeklyTimeStamp} = require("./setWeeklyTimeStamp");
 const {updateWeeklyTimeStamp} = require("./updateWeeklyTimeStamp");
 const {setVaultAddress} = require("./setVaultAddress");
+const {addTreasure} = require("./addTreasure");
 const contractName = "PxTrainerAdventure";
 
 describe(`${contractName} contract`, () => {
@@ -41,5 +42,6 @@ describe(`${contractName} contract`, () => {
         await setWeeklyTimeStamp(contract, testUsers, blockTimestamp);
         await updateWeeklyTimeStamp(contract, testUsers, blockTimestamp);
         await setVaultAddress(contract, testUsers);
+        await addTreasure(contract, testUsers);
     })
 })
