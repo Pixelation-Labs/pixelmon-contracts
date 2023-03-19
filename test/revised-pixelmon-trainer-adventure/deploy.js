@@ -71,12 +71,14 @@ describe(`${contractName} contract`, () => {
         const MockVRFCoordinator = await hre.ethers.getContractFactory("MockVRFCoordinator");
         const mockVRFCoordinator = await MockVRFCoordinator.deploy();
         await mockVRFCoordinator.deployed();
+        testUsers = await ethers.getSigners();
+        let signer = testUsers[7];
 
         const _vrfCoordinator = mockVRFCoordinator.address;
         const _subscriptionId = process.env.SUBSCRIPTION_ID;
         const _keyHash = process.env.KEY_HASH;
         const factory = await ethers.getContractFactory(contractName);
-        contract = await factory.deploy(_vrfCoordinator, _subscriptionId, _keyHash);
+        contract = await factory.deploy(_vrfCoordinator, _subscriptionId, _keyHash, signer.address);
         expect(await contract.deployed()).to.be.ok;
     });
 

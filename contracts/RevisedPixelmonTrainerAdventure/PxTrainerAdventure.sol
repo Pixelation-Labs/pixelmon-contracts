@@ -4,6 +4,7 @@ pragma solidity ^0.8.16;
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
 import "./WinnerSelectionManager.sol";
 import "./Utils.sol";
 
@@ -19,12 +20,21 @@ error InvalidTreasureIndex();
 error InsufficientToken();
 /// @notice Thrown when not enough winner to be selected to get Sponsored Trips
 error NotEnoughWinnersForSponsoredTrip();
+/// @notice Thrown when the input signature is invalid.
+error InvalidSignature();
 
-contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
+contract PxTrainerAdventure is WinnerSelectionManager, Utils, EIP712, ReentrancyGuard {
     /// @notice code number for ERC1155 token
     uint256 public constant ERC_1155_TYPE = 1;
     /// @notice code number for ERC721 token
     uint256 public constant ERC_721_TYPE = 2;
+
+    /// @dev Signing domain for the purpose of creating signature
+    string public constant SIGNING_DOMAIN = "Pixelmon-Trainer-Adventure";
+    /// @dev signature version for creating and verifying signature
+    string public constant SIGNATURE_VERSION = "1";
+    /// @dev Signer wallet address for signature verification
+    address public SIGNER;
 
     /// @notice Wallet address that keeps all prizes
     address public vaultWalletAddress;
@@ -73,11 +83,50 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
     /// @param _chainLinkSubscriptionId The Chainlink Subscription ID that is funded to use VRF
     /// @param _keyHash The gas lane to use, which specifies the maximum gas price to bump to.
     ///        More https://docs.chain.link/docs/vrf/v2/subscription/supported-networks/#configurations
+    /// @param _signer Signer wallet address for signature verification
     constructor(
         address _vrfCoordinator,
         uint64 _chainLinkSubscriptionId,
-        bytes32 _keyHash
-    ) WinnerSelectionManager(_vrfCoordinator, _chainLinkSubscriptionId, _keyHash) {}
+        bytes32 _keyHash,
+        address _signer
+    ) WinnerSelectionManager(_vrfCoordinator, _chainLinkSubscriptionId, _keyHash) 
+    EIP712(SIGNING_DOMAIN, SIGNATURE_VERSION) {
+        SIGNER = _signer;
+    }
+
+    /// @notice Sets Signer wallet address
+    /// @dev This function can only be executed by the contract owner
+    /// @param signer Signer wallet address for signature verifition
+    function setSignerAddress(address signer) external onlyOwner {
+        SIGNER = signer;
+    }
+
+    /// @notice Recovers signer wallet from signature
+    /// @dev View function for signature recovering
+    /// @param weekNumber Week number for claim
+    /// @param claimIndex Claim index for a perticular user for a week
+    /// @param walletAddress Token owner wallet address
+    /// @param signature Signature from signer wallet
+    function recoverSignerFromSignature(
+        uint256 weekNumber,
+        uint256 claimIndex,
+        address walletAddress,
+        bytes calldata signature
+    ) public view returns (address) {
+        bytes32 digest = _hashTypedDataV4(
+            keccak256(
+                abi.encode(
+                    keccak256(
+                        "TrainerAdventureSignature(uint256 weekNumber,uint256 claimIndex,address walletAddress)"
+                    ),
+                    weekNumber,
+                    claimIndex,
+                    walletAddress
+                )
+            )
+        );
+        return ECDSA.recover(digest, signature);
+    }
 
     /// @notice Set address to become vault
     /// @param _walletAddress Wallet address that will be the vault
@@ -112,11 +161,18 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
     /// @notice Claim prize for winner
     /// @dev Only winner of the week can call this method
     /// @param _weekNumber The week number to claim prize
-    function claimTreasure(uint256 _weekNumber) external nonReentrant noContracts {
+    /// @param _signature Signature from signer wallet
+    function claimTreasure(uint256 _weekNumber, bytes calldata _signature) external nonReentrant noContracts {
         if (!(block.timestamp >= weekInfos[_weekNumber].claimStartTimeStamp && block.timestamp <= weekInfos[_weekNumber].endTimeStamp)) {
             revert InvalidClaimingPeriod();
         }
         Week storage week = weekInfos[_weekNumber];
+        
+        address signer = recoverSignerFromSignature(_weekNumber, week.winners[msg.sender].claimed, msg.sender, _signature);
+        if(signer != SIGNER) {
+            revert InvalidSignature();
+        }
+
         if (week.winners[msg.sender].claimLimit == 0) {
             revert NotAWinner();
         }
