@@ -10,6 +10,7 @@ const {updateWeeklyTimeStamp} = require("./updateWeeklyTimeStamp");
 const {setVaultAddress} = require("./setVaultAddress");
 const {addTreasure} = require("./addTreasure");
 const {addSponsoredTripTreasure} = require("./addSponsoredTripTreasure");
+const {setSponsoredTripWinnerMap} = require("./setSponsoredTripWinnerMap");
 const contractName = "PxTrainerAdventure";
 
 describe(`${contractName} contract`, () => {
@@ -45,5 +46,6 @@ describe(`${contractName} contract`, () => {
         await setVaultAddress(contract, testUsers);
         await addTreasure(contract, testUsers);
         await addSponsoredTripTreasure(contract, testUsers);
+        await setSponsoredTripWinnerMap(contract, testUsers);
     })
 })
