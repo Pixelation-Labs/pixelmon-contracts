@@ -40,7 +40,7 @@ async function main() {
   const pxTrainerAdventureSignature = PxTrainerAdventureSignature.attach('0x1B786B43CEd52078De6E0fdcf2d88E828D89F341');
   const accounts = await hre.ethers.getSigners();
   const deployer = accounts[0];
-  await createSignature(1, 0, deployer.address, deployer, pxTrainerAdventureSignature);
+  await createSignature(2, 1, "0xC09Dd8266E298D9554aFc053d2841C286c763Fd9", deployer, pxTrainerAdventureSignature);
 }
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
