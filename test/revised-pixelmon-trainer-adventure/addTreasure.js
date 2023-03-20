@@ -33,7 +33,7 @@ const addTreasure = async (contract, testUsers, collection) => {
             treasure = {
                 collectionAddress: collection.trainer.address,
                 tokenId: 0,
-                tokenIds: Array.from({ length: 50 }, (_, i) => i + 1),
+                tokenIds: Array.from({ length: 10 }, (_, i) => i + 1),
                 claimedToken: 0,
                 contractType: await contract.ERC_721_TYPE(),
                 treasureType: 2

@@ -5,14 +5,14 @@ const {
     AlreadyClaimed,
     InvalidClaimingPeriod,
     ERC1155NotOwnerOrApproved,
-    PrizeUpdationDuration,
     TreasureTransferred,
-    WinnerUpdationDuration,
+    WeeklyDuration, PrizeUpdationDuration, WeeklyWinnersSet, NotEnoughWinnersForSponsoredTrip, WinnerUpdationDuration,
+    NotAWinner,
 } = require("./constant");
 
-const claimTreasure = async(contract, testUsers, collection, createSignature, pxTrainerAdventureSignature) => {
-    const [_,admin] = testUsers;
-    const winners = testUsers.slice(6,9);
+const claimTreasure = async(contract, testUsers, collection, blockTimestamp, createSignature, pxTrainerAdventureSignature) => {
+    const [_,admin,moderator] = testUsers;
+    let winners = testUsers.slice(6,9);
     const signer = testUsers[7];
     const weekNumber = 1;
     describe(path.basename(__filename, ".js"), () => {
@@ -84,13 +84,58 @@ const claimTreasure = async(contract, testUsers, collection, createSignature, px
         })
 
         it("Should not claim treasure before its period", async() => {
-            time.increase(WinnerUpdationDuration+PrizeUpdationDuration);
             let signature = await createSignature(weekNumber, 0, winners[1].address, signer, pxTrainerAdventureSignature);
-            await expect(contract.connect(winners[1]).claimTreasure(weekNumber, signature))
-                .to.be.revertedWithCustomError(contract, InvalidClaimingPeriod);
-
             await expect(contract.connect(winners[1]).claimTreasure(weekNumber+1, signature))
                 .to.be.revertedWithCustomError(contract, InvalidClaimingPeriod);
+            time.setNextBlockTimestamp(blockTimestamp+WeeklyDuration);
+            await expect(contract.connect(winners[1]).claimTreasure(weekNumber, signature))
+                .to.be.revertedWithCustomError(contract, InvalidClaimingPeriod);
+        })
+
+        it("Should claim on second week", async() => {
+            let weekNumber = 2;
+            const treasureIndex = [1,2];
+            const prizeAmount = Array(winners.length).fill(2);
+            const count = [0,6];
+
+            await contract.connect(admin).setWeeklyTreasureDistribution(
+                weekNumber,
+                treasureIndex,
+                count
+            )
+
+            await contract.connect(admin).setWeeklySponsoredTripDistribution(
+                weekNumber,
+                2
+            )
+
+            time.increase(PrizeUpdationDuration);
+
+            await expect(contract.connect(moderator).updateWeeklyWinners(
+                weekNumber,
+                winners.map((wallet) => wallet.address),
+                prizeAmount
+            )).to.be.revertedWithCustomError(contract, NotEnoughWinnersForSponsoredTrip);
+
+            winners = testUsers.slice(4,7);
+            const winnerAddress = winners.map((wallet) => wallet.address)
+            await contract.connect(moderator).updateWeeklyWinners(
+                weekNumber,
+                winnerAddress,
+                prizeAmount
+            );
+
+            time.increase(WinnerUpdationDuration);
+
+            let signature = await createSignature(weekNumber, 0, admin.address, signer, pxTrainerAdventureSignature);
+            await expect(contract.connect(admin).claimTreasure(weekNumber, signature)).to.be.revertedWithCustomError(contract, NotAWinner);
+
+            for(let winner of winners) {
+                signature = await createSignature(weekNumber, 0, winner.address, signer, pxTrainerAdventureSignature);
+                await contract.connect(winner).claimTreasure(weekNumber, signature);
+            }
+            // signature = await createSignature(weekNumber, 1, winners[0].address, signer, pxTrainerAdventureSignature);
+            // await contract.connect(winners[0]).claimTreasure(weekNumber, signature);
         })
 
     })

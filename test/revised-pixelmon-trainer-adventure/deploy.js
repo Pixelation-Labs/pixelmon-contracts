@@ -27,7 +27,7 @@ const addPrizeToVault = async (vault) => {
     const collection = Object();
 
     const PixelmonTrainerGear = await hre.ethers.getContractFactory("PixelmonTrainerGear");
-    const PixelmonTrainerGearSupply = 150;
+    const PixelmonTrainerGearSupply = 2;
     const pixelmonTrainerGearContractUtils = await PixelmonTrainerGear.deploy(METADATA_BASE_URI);
     await pixelmonTrainerGearContractUtils.deployed();
 
@@ -145,7 +145,7 @@ describe(`${contractName} contract`, () => {
         await setWeeklySponsoredTripDistribution(contract, testUsers, blockTimestamp);
         await updateWeeklyWinners(contract, testUsers);
         await chainLinkMockTest(contract, testUsers);
-        await claimTreasure(contract, testUsers, collection, createSignature, pxTrainerAdventureSignature);
+        await claimTreasure(contract, testUsers, collection, blockTimestamp, createSignature, pxTrainerAdventureSignature);
         await testSignature(contract, testUsers, createSignature, pxTrainerAdventureSignature);
     });
 });

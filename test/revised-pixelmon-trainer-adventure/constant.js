@@ -11,6 +11,8 @@ module.exports = {
     InvalidUpdationPeriod: "InvalidUpdationPeriod",
     InvalidWeekNumber: "InvalidWeekNumber",
     NotAdmin: "NotAdmin",
+    NotAWinner: "NotAWinner",
+    NotEnoughWinnersForSponsoredTrip: "NotEnoughWinnersForSponsoredTrip",
     NotModerator: "NotModerator",
     PrizeUpdationDuration: 10000,
     TreasureTransferred: "TreasureTransferred",
