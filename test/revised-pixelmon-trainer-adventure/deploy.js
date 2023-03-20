@@ -12,11 +12,12 @@ const { addTreasure } = require("./addTreasure");
 const { addSponsoredTripTreasure } = require("./addSponsoredTripTreasure");
 const { setSponsoredTripWinnerMap } = require("./setSponsoredTripWinnerMap");
 const { testSignature } = require("./signatureTest");
-
 const { setWeeklyTreasureDistribution } = require("./setWeeklyTreasureDistribution");
 const { setWeeklySponsoredTripDistribution } = require("./setWeeklySponsoredTripDistribution");
 const { updateWeeklyWinners } = require("./updateWeeklyWinners");
 const { claimTreasure } = require("./claimTreasure");
+const { chainLinkMockTest } = require("./chainLinkMockTest");
+
 const contractName = "PxTrainerAdventure";
 
 const addPrizeToVault = async (vault) => {
@@ -101,19 +102,25 @@ const createSignature = async (weekNumber, claimIndex, walletAddress, signer, co
 describe(`${contractName} contract`, () => {
     let contract;
     let testUsers;
+    let pxTrainerAdventureSignature;
 
     it("Should deploy contract", async () => {
+        testUsers = await ethers.getSigners();
+        let signer = testUsers[7];
+
+        const PxTrainerAdventureSignature = await hre.ethers.getContractFactory("PxTrainerAdventureSignature");
+        pxTrainerAdventureSignature = await PxTrainerAdventureSignature.deploy(signer.address);
+        await pxTrainerAdventureSignature.deployed();
+
         const MockVRFCoordinator = await hre.ethers.getContractFactory("MockVRFCoordinator");
         const mockVRFCoordinator = await MockVRFCoordinator.deploy();
         await mockVRFCoordinator.deployed();
-        testUsers = await ethers.getSigners();
-        let signer = testUsers[7];
 
         const _vrfCoordinator = mockVRFCoordinator.address;
         const _subscriptionId = process.env.SUBSCRIPTION_ID;
         const _keyHash = process.env.KEY_HASH;
         const factory = await ethers.getContractFactory(contractName);
-        contract = await factory.deploy(_vrfCoordinator, _subscriptionId, _keyHash, signer.address);
+        contract = await factory.deploy(_vrfCoordinator, _subscriptionId, _keyHash, pxTrainerAdventureSignature.address);
         expect(await contract.deployed()).to.be.ok;
     });
 
@@ -143,6 +150,7 @@ describe(`${contractName} contract`, () => {
         await updateWeeklyWinners(contract, testUsers);
         await claimTreasure(contract, testUsers, collection);
         await updateWeeklyWinners(contract, testUsers);
-        await testSignature(contract, testUsers, createSignature);
+        await testSignature(pxTrainerAdventureSignature, testUsers, createSignature);
+        await chainLinkMockTest(contract, testUsers);
     });
 });

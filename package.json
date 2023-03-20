@@ -11,7 +11,8 @@
     "test:coverage:revised:pixelmon:trainer:adventure": "npx hardhat coverage --network hardhat --testfiles \"test/revised-pixelmon-trainer-adventure/*.js\"",
     "publish:contract:mainnet": "npx hardhat verify --network mainnet",
     "deploy:contract:hardhat": "npx hardhat run ./scripts/deploy.Contract.js --network hardhat",
-    "deploy:pxTrainerAdventureContract:goerli": "npx hardhat run ./scripts/PxTrainerAdventure/deploy.Contract.js --network goerli",
+    "deploy:pxTrainerAdventureContract:goerli": "npx hardhat run ./scripts/PxTrainerAdventure/deploy.PxTrainerAdventure.js --network goerli",
+    "deploy:pxTrainerAdventureSignatureContract:goerli": "npx hardhat run ./scripts/PxTrainerAdventure/deploy.PxTrainerAdventureSignature.js --network goerli",
     "publish:contract:goerli": "npx hardhat verify --network goerli",
     "deploy:contract:mainnet": "npx hardhat run ./scripts/deploy.Contract.js --network mainnet",
     "test:revised:pixelmon:trainer:adventure": "npx hardhat test --network hardhat ./test/revised-pixelmon-trainer-adventure/deploy.js"
