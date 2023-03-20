@@ -16,7 +16,7 @@ const { setWeeklyTreasureDistribution } = require("./setWeeklyTreasureDistributi
 const { setWeeklySponsoredTripDistribution } = require("./setWeeklySponsoredTripDistribution");
 const { updateWeeklyWinners } = require("./updateWeeklyWinners");
 const { claimTreasure } = require("./claimTreasure");
-const { chainLinkMockTest } = require("./chainLinkMockTest");
+const { chainLinkMockTest } = require("./chainlinkMockTest");
 
 const contractName = "PxTrainerAdventure";
 
