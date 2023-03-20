@@ -4,8 +4,8 @@ pragma solidity ^0.8.16;
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
 import "./WinnerSelectionManager.sol";
+import "./ITrainerAdventureSignature.sol";
 import "./Utils.sol";
 
 /// @notice Thrown when all prizes are already claimed
@@ -23,18 +23,18 @@ error NotEnoughWinnersForSponsoredTrip();
 /// @notice Thrown when the input signature is invalid.
 error InvalidSignature();
 
-contract PxTrainerAdventure is WinnerSelectionManager, Utils, EIP712, ReentrancyGuard {
+contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
     /// @notice code number for ERC1155 token
     uint256 public constant ERC_1155_TYPE = 1;
     /// @notice code number for ERC721 token
     uint256 public constant ERC_721_TYPE = 2;
 
-    /// @dev Signing domain for the purpose of creating signature
-    string public constant SIGNING_DOMAIN = "Pixelmon-Trainer-Adventure";
-    /// @dev signature version for creating and verifying signature
-    string public constant SIGNATURE_VERSION = "1";
+    
     /// @dev Signer wallet address for signature verification
     address public SIGNER;
+
+    /// @dev Signature Contract Address
+    ITrainerAdventureSignature public SIGNATURE_CONTRACT;
 
     /// @notice Wallet address that keeps all prizes
     address public vaultWalletAddress;
@@ -84,14 +84,16 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, EIP712, Reentrancy
     /// @param _keyHash The gas lane to use, which specifies the maximum gas price to bump to.
     ///        More https://docs.chain.link/docs/vrf/v2/subscription/supported-networks/#configurations
     /// @param _signer Signer wallet address for signature verification
+    /// @param _signer Signer wallet address for signature verification
     constructor(
         address _vrfCoordinator,
         uint64 _chainLinkSubscriptionId,
         bytes32 _keyHash,
-        address _signer
-    ) WinnerSelectionManager(_vrfCoordinator, _chainLinkSubscriptionId, _keyHash) 
-    EIP712(SIGNING_DOMAIN, SIGNATURE_VERSION) {
+        address _signer,
+        address _signatureContractAddress
+    ) WinnerSelectionManager(_vrfCoordinator, _chainLinkSubscriptionId, _keyHash) {
         SIGNER = _signer;
+        SIGNATURE_CONTRACT = ITrainerAdventureSignature(_signatureContractAddress);
     }
 
     /// @notice Sets Signer wallet address
@@ -101,31 +103,8 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, EIP712, Reentrancy
         SIGNER = signer;
     }
 
-    /// @notice Recovers signer wallet from signature
-    /// @dev View function for signature recovering
-    /// @param weekNumber Week number for claim
-    /// @param claimIndex Claim index for a perticular user for a week
-    /// @param walletAddress Token owner wallet address
-    /// @param signature Signature from signer wallet
-    function recoverSignerFromSignature(
-        uint256 weekNumber,
-        uint256 claimIndex,
-        address walletAddress,
-        bytes calldata signature
-    ) public view returns (address) {
-        bytes32 digest = _hashTypedDataV4(
-            keccak256(
-                abi.encode(
-                    keccak256(
-                        "TrainerAdventureSignature(uint256 weekNumber,uint256 claimIndex,address walletAddress)"
-                    ),
-                    weekNumber,
-                    claimIndex,
-                    walletAddress
-                )
-            )
-        );
-        return ECDSA.recover(digest, signature);
+    function setSignatureContractAddress(address _signatureContractAddress) external onlyOwner {
+        SIGNATURE_CONTRACT = ITrainerAdventureSignature(_signatureContractAddress);
     }
 
     /// @notice Set address to become vault
@@ -168,7 +147,8 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, EIP712, Reentrancy
         }
         Week storage week = weekInfos[_weekNumber];
         
-        address signer = recoverSignerFromSignature(_weekNumber, week.winners[msg.sender].claimed, msg.sender, _signature);
+        address signer = SIGNATURE_CONTRACT.recoverSignerFromSignature(_weekNumber, week.winners[msg.sender].claimed, msg.sender, _signature);
+        
         if(signer != SIGNER) {
             revert InvalidSignature();
         }
