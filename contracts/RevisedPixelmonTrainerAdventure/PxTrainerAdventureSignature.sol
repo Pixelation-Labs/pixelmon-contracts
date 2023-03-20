@@ -28,7 +28,7 @@ contract PxTrainerAdventureSignature is EIP712, Ownable {
         bytes32 digest = _hashTypedDataV4(
             keccak256(
                 abi.encode(
-                    keccak256("PxTrainerAdventureSignature(uint256 weekNumber,uint256 claimIndex,address walletAddress)"),
+                    keccak256("TrainerAdventureSignature(uint256 weekNumber,uint256 claimIndex,address walletAddress)"),
                     weekNumber,
                     claimIndex,
                     walletAddress
