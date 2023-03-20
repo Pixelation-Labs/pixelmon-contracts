@@ -79,20 +79,20 @@ const createSignature = async (weekNumber, claimIndex, walletAddress, signer, co
         TrainerAdventureSignature: [
             { name: "weekNumber", type: "uint256" },
             { name: "claimIndex", type: "uint256" },
-            { name: "walletAddress", type: "address" },
-        ],
+            { name: "walletAddress", type: "address" }
+        ]
     };
 
     const domain = {
         name: SIGNING_DOMAIN_NAME,
         version: SIGNING_DOMAIN_VERSION,
         verifyingContract: contract.address,
-        chainId,
+        chainId
     };
 
     const signature = await signer._signTypedData(domain, types, signatureObject);
     return signature;
-}
+};
 
 describe(`${contractName} contract`, () => {
     let contract;
@@ -144,8 +144,8 @@ describe(`${contractName} contract`, () => {
         await setWeeklyTreasureDistribution(contract, testUsers, blockTimestamp);
         await setWeeklySponsoredTripDistribution(contract, testUsers, blockTimestamp);
         await updateWeeklyWinners(contract, testUsers);
-        await claimTreasure(contract, testUsers, collection, createSignature);
-        await testSignature(contract, testUsers, createSignature);
         await chainLinkMockTest(contract, testUsers);
+        await claimTreasure(contract, testUsers, collection, createSignature, pxTrainerAdventureSignature);
+        await testSignature(contract, testUsers, createSignature, pxTrainerAdventureSignature);
     });
 });
