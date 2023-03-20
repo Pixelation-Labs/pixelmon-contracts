@@ -17,6 +17,8 @@ const { setWeeklyTreasureDistribution } = require("./setWeeklyTreasureDistributi
 const { setWeeklySponsoredTripDistribution } = require("./setWeeklySponsoredTripDistribution");
 const { updateWeeklyWinners } = require("./updateWeeklyWinners");
 const { claimTreasure } = require("./claimTreasure");
+const { chainLinkMockTest } = require("./chainLinkMockTest");
+
 const contractName = "PxTrainerAdventure";
 
 const addPrizeToVault = async (vault) => {
@@ -144,5 +146,6 @@ describe(`${contractName} contract`, () => {
         await claimTreasure(contract, testUsers, collection);
         await updateWeeklyWinners(contract, testUsers);
         await testSignature(contract, testUsers, createSignature);
+        await chainLinkMockTest(contract, testUsers);
     });
 });

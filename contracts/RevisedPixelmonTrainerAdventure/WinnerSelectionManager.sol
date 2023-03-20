@@ -377,4 +377,8 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
         week.tripWinners = weekInfos[_weekNumber].tripWinners;
         week.availabletripsCount = weekInfos[_weekNumber].availabletripsCount;
     }
+
+    function getWeeklyClaimedCount(uint256 _weekNumber, address _walletAddress ) external view returns (uint8 count) {
+        return weekInfos[_weekNumber].winners[_walletAddress].claimed;
+    }
 }
