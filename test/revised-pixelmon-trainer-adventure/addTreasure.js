@@ -1,8 +1,9 @@
 const { expect } = require("chai");
+const path = require("node:path");
 
 const addTreasure = async (contract, testUsers, collection) => {
     const [owner, admin] = testUsers;
-    describe("Add Treasure", () => {
+    describe(path.basename(__filename, ".js"), () => {
         it("Add Treasure as Admin", async () => {
             await contract.setAdminWallet(admin.address, true);
             let isAdmin = await contract.adminWallets(admin.address);

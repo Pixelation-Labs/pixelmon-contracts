@@ -1,9 +1,10 @@
+const path = require("node:path");
 const {expect} = require("chai");
 const {ErrorNotOwner} = require("./constant")
 
 const setSponsoredTripWinnerMap = async (contract, testUsers) => {
     const [owner, admin] = testUsers;
-    describe("setSponsoredTripWinnerMap", () => {
+    describe(path.basename(__filename, ".js"), () => {
         it("setSponsoredTripWinnerMap as Admin", async () => {
             await contract.setAdminWallet(admin.address, true);
             let isAdmin = await contract.adminWallets(admin.address);

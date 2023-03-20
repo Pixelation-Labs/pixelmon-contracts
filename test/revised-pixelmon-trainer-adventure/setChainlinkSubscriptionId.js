@@ -1,9 +1,10 @@
+const path = require("node:path");
 const {expect} = require("chai");
 const {NotAdmin} = require("./constant")
 
 const setChainlinkSubscriptionId = async(contract, testUsers) => {
     const [_,admin] = testUsers;
-    describe("setChainlinkSubscriptionId", () => {
+    describe(path.basename(__filename, ".js"), () => {
         it("Should set callback gas limit", async () => {
             const newLimit = 10000;
             const initialId = await contract.chainLinkSubscriptionId();

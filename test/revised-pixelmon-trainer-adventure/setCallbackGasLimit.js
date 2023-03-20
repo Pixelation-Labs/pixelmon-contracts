@@ -1,9 +1,10 @@
+const path = require("node:path");
 const {expect} = require("chai");
 const {CallbackGasLimit, NotAdmin} = require("./constant")
 
 const setCallbackGasLimit = async(contract, testUsers) => {
     const [_,admin] = testUsers;
-    describe("setCallbackGasLimit", () => {
+    describe(path.basename(__filename, ".js"), () => {
         it("Should set callback gas limit", async () => {
             const newLimit = 10000;
             expect(await contract.callbackGasLimit()).to.equal(CallbackGasLimit);

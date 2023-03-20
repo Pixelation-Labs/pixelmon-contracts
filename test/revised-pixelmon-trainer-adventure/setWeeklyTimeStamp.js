@@ -1,3 +1,4 @@
+const path = require("node:path");
 const { expect } = require("chai");
 const {time} = require("@nomicfoundation/hardhat-network-helpers");
 const {
@@ -9,8 +10,8 @@ const {
 } = require("./constant");
 
 const setWeeklyTimeStamp = async (contract, testUsers, blockTimestamp) => {
-    const [_, admin, moderator] = testUsers;
-    describe("setWeeklyTimeStamp", () => {
+    const [_, admin] = testUsers;
+    describe(path.basename(__filename, ".js"), () => {
         const weekNumber = 2;
         it("Should set weekly timestamp", async () => {
             expect(await contract.totalWeek()).to.be.equal(0)

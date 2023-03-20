@@ -1,3 +1,4 @@
+const path = require("node:path");
 const {expect} = require("chai");
 const {
     InvalidDuration,
@@ -9,7 +10,7 @@ const {
 } = require("./constant");
 
 const updateWeeklyTimeStamp = async(contract, testUsers, blockTimestamp) => {
-    describe("updateWeeklyTimeStamp", () => {
+    describe(path.basename(__filename, ".js"), () => {
         const [_, admin] = testUsers;
 
         it("Should update weekly timestamp", async() => {
@@ -21,11 +22,23 @@ const updateWeeklyTimeStamp = async(contract, testUsers, blockTimestamp) => {
                 PrizeUpdationDuration,
                 WinnerUpdationDuration,
                 WeeklyDuration);
-            const [startTimestamp, ticketDrawPeriod, claimPrizePeriod, endTimestamp] = await contract.getWeekInfo(weekNumber);
+            let [startTimestamp, ticketDrawPeriod, claimPrizePeriod, endTimestamp] = await contract.getWeekInfo(weekNumber);
             expect(startTimestamp).to.be.equal(newBlockTimestamp);
             expect(ticketDrawPeriod).to.be.equal(newBlockTimestamp+PrizeUpdationDuration);
             expect(claimPrizePeriod).to.be.equal(newBlockTimestamp+PrizeUpdationDuration+WinnerUpdationDuration);
             expect(endTimestamp).to.be.equal(newBlockTimestamp+WeeklyDuration-1);
+
+            await contract.connect(admin).updateWeeklyTimeStamp(
+                weekNumber,
+                blockTimestamp,
+                PrizeUpdationDuration,
+                WinnerUpdationDuration,
+                WeeklyDuration);
+            [startTimestamp, ticketDrawPeriod, claimPrizePeriod, endTimestamp] = await contract.getWeekInfo(weekNumber);
+            expect(startTimestamp).to.be.equal(blockTimestamp);
+            expect(ticketDrawPeriod).to.be.equal(blockTimestamp+PrizeUpdationDuration);
+            expect(claimPrizePeriod).to.be.equal(blockTimestamp+PrizeUpdationDuration+WinnerUpdationDuration);
+            expect(endTimestamp).to.be.equal(blockTimestamp+WeeklyDuration-1);
         })
 
         it("Should not update non-exist week", async() => {

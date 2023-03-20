@@ -1,9 +1,10 @@
+const path = require("node:path");
 const {expect} = require("chai");
 const {ErrorNotOwner} = require("./constant")
 
 const setModeratorWallet = async (contract, testUsers) => {
     const [owner, _, moderator] = testUsers;
-    describe("setModeratorWallet", () => {
+    describe(path.basename(__filename, ".js"), () => {
         it("Set address as Moderator", async () => {
             await contract.setModeratorWallet(moderator.address, true);
             expect(await contract.moderatorWallets(moderator.address)).to.be.ok;
