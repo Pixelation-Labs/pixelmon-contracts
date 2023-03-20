@@ -17,5 +17,5 @@ interface IPxTrainerAdventureSignature {
         uint256 claimIndex,
         address walletAddress,
         bytes calldata signature
-    ) external returns (address);
+    ) external returns (bool);
 }

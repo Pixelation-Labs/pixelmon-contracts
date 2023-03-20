@@ -29,10 +29,6 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
     /// @notice code number for ERC721 token
     uint256 public constant ERC_721_TYPE = 2;
 
-    
-    /// @dev Signer wallet address for signature verification
-    address public SIGNER;
-
     /// @dev Signature Contract Address
     IPxTrainerAdventureSignature public SIGNATURE_CONTRACT;
 
@@ -83,24 +79,14 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
     /// @param _chainLinkSubscriptionId The Chainlink Subscription ID that is funded to use VRF
     /// @param _keyHash The gas lane to use, which specifies the maximum gas price to bump to.
     ///        More https://docs.chain.link/docs/vrf/v2/subscription/supported-networks/#configurations
-    /// @param _signer Signer wallet address for signature verification
-    /// @param _signer Signer wallet address for signature verification
+    /// @param _pxSignatureAddress Signature contract address
     constructor(
         address _vrfCoordinator,
         uint64 _chainLinkSubscriptionId,
         bytes32 _keyHash,
-        address _signer,
         address _pxSignatureAddress
     ) WinnerSelectionManager(_vrfCoordinator, _chainLinkSubscriptionId, _keyHash) {
-        SIGNER = _signer;
         SIGNATURE_CONTRACT = IPxTrainerAdventureSignature(_pxSignatureAddress);
-    }
-
-    /// @notice Sets Signer wallet address
-    /// @dev This function can only be executed by the contract owner
-    /// @param signer Signer wallet address for signature verifition
-    function setSignerAddress(address signer) external onlyOwner {
-        SIGNER = signer;
     }
 
     function setSignatureContractAddress(address _pxSignatureAddress) external onlyOwner {
@@ -147,9 +133,9 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
         }
         Week storage week = weekInfos[_weekNumber];
         
-        address signer = SIGNATURE_CONTRACT.recoverSignerFromSignature(_weekNumber, week.winners[msg.sender].claimed, msg.sender, _signature);
+        bool isValidSigner = SIGNATURE_CONTRACT.recoverSignerFromSignature(_weekNumber, week.winners[msg.sender].claimed, msg.sender, _signature);
         
-        if(signer != SIGNER) {
+        if(!isValidSigner) {
             revert InvalidSignature();
         }
 
