@@ -64,6 +64,7 @@ const claimTreasure = async(contract, testUsers, collection, createSignature, px
             expect(Number(await collection.sponsoredTrip.balanceOf(winner.address, 1))).to.be.equal(0);
             expect(Number(await collection.trainerGear.balanceOf(winner.address, 1))).to.be.equal(1);
             expect(Number(await collection.trainer.balanceOf(winner.address))).to.be.equal(1);
+            expect(Number(await contract.getWeeklyClaimedCount(weekNumber, winner.address))).to.be.equal(2);
         })
 
         it("Should not claim more than its limit", async () => {
