@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./WinnerSelectionManager.sol";
-import "./ITrainerAdventureSignature.sol";
+import "./IPxTrainerAdventureSignature.sol";
 import "./Utils.sol";
 
 /// @notice Thrown when all prizes are already claimed
@@ -34,7 +34,7 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
     address public SIGNER;
 
     /// @dev Signature Contract Address
-    ITrainerAdventureSignature public SIGNATURE_CONTRACT;
+    IPxTrainerAdventureSignature public SIGNATURE_CONTRACT;
 
     /// @notice Wallet address that keeps all prizes
     address public vaultWalletAddress;
@@ -90,10 +90,10 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
         uint64 _chainLinkSubscriptionId,
         bytes32 _keyHash,
         address _signer,
-        address _signatureContractAddress
+        address _pxSignatureAddress
     ) WinnerSelectionManager(_vrfCoordinator, _chainLinkSubscriptionId, _keyHash) {
         SIGNER = _signer;
-        SIGNATURE_CONTRACT = ITrainerAdventureSignature(_signatureContractAddress);
+        SIGNATURE_CONTRACT = IPxTrainerAdventureSignature(_pxSignatureAddress);
     }
 
     /// @notice Sets Signer wallet address
@@ -103,8 +103,8 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
         SIGNER = signer;
     }
 
-    function setSignatureContractAddress(address _signatureContractAddress) external onlyOwner {
-        SIGNATURE_CONTRACT = ITrainerAdventureSignature(_signatureContractAddress);
+    function setSignatureContractAddress(address _pxSignatureAddress) external onlyOwner {
+        SIGNATURE_CONTRACT = IPxTrainerAdventureSignature(_pxSignatureAddress);
     }
 
     /// @notice Set address to become vault

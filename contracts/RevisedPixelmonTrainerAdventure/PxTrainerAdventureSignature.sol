@@ -4,27 +4,14 @@ pragma solidity ^0.8.16;
 import "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract TrainerAdventureSignature is EIP712, Ownable {
-
+contract PxTrainerAdventureSignature is EIP712, Ownable {
     /// @dev Signing domain for the purpose of creating signature
     string public constant SIGNING_DOMAIN = "Pixelmon-Trainer-Adventure";
     /// @dev signature version for creating and verifying signature
     string public constant SIGNATURE_VERSION = "1";
-    /// @dev Signer wallet address for signature verification
-    address public SIGNER;
 
     /// @notice The contract constructor
-    /// @param _signer Signer wallet address for signature verification
-    constructor(address _signer) EIP712(SIGNING_DOMAIN, SIGNATURE_VERSION) {
-        SIGNER = _signer;
-    }
-
-    /// @notice Sets Signer wallet address
-    /// @dev This function can only be executed by the contract owner
-    /// @param signer Signer wallet address for signature verifition
-    function setSignerAddress(address signer) external onlyOwner {
-        SIGNER = signer;
-    }
+    constructor() EIP712(SIGNING_DOMAIN, SIGNATURE_VERSION) {}
 
     /// @notice Recovers signer wallet from signature
     /// @dev View function for signature recovering
@@ -41,9 +28,7 @@ contract TrainerAdventureSignature is EIP712, Ownable {
         bytes32 digest = _hashTypedDataV4(
             keccak256(
                 abi.encode(
-                    keccak256(
-                        "TrainerAdventureSignature(uint256 weekNumber,uint256 claimIndex,address walletAddress)"
-                    ),
+                    keccak256("PxTrainerAdventureSignature(uint256 weekNumber,uint256 claimIndex,address walletAddress)"),
                     weekNumber,
                     claimIndex,
                     walletAddress
