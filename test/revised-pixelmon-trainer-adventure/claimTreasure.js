@@ -5,6 +5,7 @@ const {
     AlreadyClaimed,
     InsufficientToken,
     InvalidClaimingPeriod,
+    InvalidSignature,
     ERC1155NotOwnerOrApproved,
     TreasureTransferred,
     WeeklyDuration,
@@ -140,6 +141,12 @@ const claimTreasure = async (contract, testUsers, collection, blockTimestamp, cr
             }
 
             signature = await createSignature(weekNumber, 0, winners[2].address, signer, pxTrainerAdventureSignature);
+            await contract.connect(winners[2]).claimTreasure(weekNumber, signature);
+
+            signature = await createSignature(weekNumber, 0, winners[2].address, signer, pxTrainerAdventureSignature);
+            await expect(contract.connect(winners[2]).claimTreasure(weekNumber, signature)).to.be.revertedWithCustomError(contract, InvalidSignature);
+
+            signature = await createSignature(weekNumber, 1, winners[2].address, signer, pxTrainerAdventureSignature);
             await expect(contract.connect(winners[2]).claimTreasure(weekNumber, signature)).to.be.revertedWithCustomError(contract, InsufficientToken);
         });
 

@@ -7,6 +7,7 @@ module.exports = {
     InvalidClaimingPeriod: "InvalidClaimingPeriod",
     InvalidDuration: "InvalidDuration",
     InvalidLength: "InvalidLength",
+    InvalidSignature: "InvalidSignature",
     InvalidTimeStamp: "InvalidTimeStamp",
     InvalidTreasureIndex: "InvalidTreasureIndex",
     InvalidUpdationPeriod: "InvalidUpdationPeriod",

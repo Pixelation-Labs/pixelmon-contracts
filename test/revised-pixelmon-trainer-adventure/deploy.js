@@ -17,6 +17,7 @@ const { setWeeklySponsoredTripDistribution } = require("./setWeeklySponsoredTrip
 const { updateWeeklyWinners } = require("./updateWeeklyWinners");
 const { claimTreasure } = require("./claimTreasure");
 const { chainLinkMockTest } = require("./chainlinkMockTest");
+const { setSignatureContractAddress } = require("./setSignatureContractAddress");
 
 const contractName = "PxTrainerAdventure";
 
@@ -49,7 +50,7 @@ const addPrizeToVault = async (vault) => {
     const PixelmonTrainer = await ethers.getContractFactory(
         "PixelmonTrainer"
     );
-    const PixelmonTrainerSupply = 3;
+    const PixelmonTrainerSupply = 4;
     const PixelmonTrainerUtils = await PixelmonTrainer.deploy(
         "Trainer",
         "TRN",
@@ -147,5 +148,6 @@ describe(`${contractName} contract`, () => {
         await chainLinkMockTest(contract, testUsers);
         await claimTreasure(contract, testUsers, collection, blockTimestamp, createSignature, pxTrainerAdventureSignature);
         await testSignature(contract, testUsers, createSignature, pxTrainerAdventureSignature);
+        await setSignatureContractAddress(contract, testUsers, pxTrainerAdventureSignature);
     });
 });
