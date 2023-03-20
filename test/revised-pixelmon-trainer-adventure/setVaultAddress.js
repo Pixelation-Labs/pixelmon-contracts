@@ -1,9 +1,10 @@
+const path = require("node:path");
 const {expect} = require("chai");
 const {ErrorNotOwner} = require("./constant")
 
 const setVaultAddress = async (contract, testUsers) => {
     const [owner, admin] = testUsers;
-    describe("setVaultAddress", () => {
+    describe(path.basename(__filename, ".js"), () => {
         it("Contract owner will be able to set vault address", async () => {
             await contract.setVaultWalletAddress(admin.address);
             expect(await contract.setVaultWalletAddress(admin.address)).to.be.ok;

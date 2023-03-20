@@ -11,9 +11,12 @@ const { setVaultAddress } = require("./setVaultAddress");
 const { addTreasure } = require("./addTreasure");
 const { addSponsoredTripTreasure } = require("./addSponsoredTripTreasure");
 const { setSponsoredTripWinnerMap } = require("./setSponsoredTripWinnerMap");
-const { updateWeeklyWinners } = require("./updateWeeklyWinners");
 const { testSignature } = require("./signatureTest");
 
+const { setWeeklyTreasureDistribution } = require("./setWeeklyTreasureDistribution");
+const { setWeeklySponsoredTripDistribution } = require("./setWeeklySponsoredTripDistribution");
+const { updateWeeklyWinners } = require("./updateWeeklyWinners");
+const { claimTreasure } = require("./claimTreasure");
 const contractName = "PxTrainerAdventure";
 
 const addPrizeToVault = async (vault) => {
@@ -27,10 +30,10 @@ const addPrizeToVault = async (vault) => {
     const pixelmonTrainerGearContractUtils = await PixelmonTrainerGear.deploy(METADATA_BASE_URI);
     await pixelmonTrainerGearContractUtils.deployed();
 
-    // The contract address should be saved to 'collection'
-    // It will be used as collection address for the prize in
-    // the smart contract
-    collection.trainerGear = pixelmonTrainerGearContractUtils.address;
+    // The contract should be saved to 'collection'
+    // It will be used to check whether the prize is
+    // transferred successfully to the winner
+    collection.trainerGear = pixelmonTrainerGearContractUtils;
     await pixelmonTrainerGearContractUtils.setMinterAddress(vault.address, true);
     await pixelmonTrainerGearContractUtils.connect(vault).mint(vault.address, 1, PixelmonTrainerGearSupply);
     await pixelmonTrainerGearContractUtils.connect(vault).mint(vault.address, 2, PixelmonTrainerGearSupply);
@@ -43,7 +46,7 @@ const addPrizeToVault = async (vault) => {
     const PixelmonSponsoredTripsSupply = 40;
     const PixelmonSponsoredTripsUtils = await PixelmonSponsoredTrips.deploy(PixelmonSponsoredTripsSupply, METADATA_BASE_URI);
     await PixelmonSponsoredTripsUtils.deployed();
-    collection.sponsoredTrip = PixelmonSponsoredTripsUtils.address;
+    collection.sponsoredTrip = PixelmonSponsoredTripsUtils;
     await PixelmonSponsoredTripsUtils.setMinterAddress(vault.address, true);
     await PixelmonSponsoredTripsUtils.connect(vault).mint(vault.address, PixelmonSponsoredTripsSupply);
 
@@ -57,7 +60,7 @@ const addPrizeToVault = async (vault) => {
         METADATA_BASE_URI
     );
     await PixelmonTrainerUtils.deployed();
-    collection.trainer = PixelmonTrainerUtils.address;
+    collection.trainer = PixelmonTrainerUtils;
     await PixelmonTrainerUtils.whitelistAddress(vault.address, true);
     await PixelmonTrainerUtils.connect(vault).mintRangeOne(vault.address, PixelmonTrainerSupply);
 
@@ -135,7 +138,11 @@ describe(`${contractName} contract`, () => {
         await addTreasure(contract, testUsers, collection);
         await addSponsoredTripTreasure(contract, testUsers, collection);
         await setSponsoredTripWinnerMap(contract, testUsers);
+        await setWeeklyTreasureDistribution(contract, testUsers, blockTimestamp);
+        await setWeeklySponsoredTripDistribution(contract, testUsers, blockTimestamp);
+        await updateWeeklyWinners(contract, testUsers);
+        await claimTreasure(contract, testUsers, collection);
         await updateWeeklyWinners(contract, testUsers);
         await testSignature(contract, testUsers, createSignature);
-    })
-})
+    });
+});

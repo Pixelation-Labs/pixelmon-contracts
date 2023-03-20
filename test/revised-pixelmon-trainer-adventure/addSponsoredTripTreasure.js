@@ -1,15 +1,16 @@
 const { expect } = require("chai");
+const path = require("node:path");
 
 const addSponsoredTripTreasure = async (contract, testUsers, collection) => {
     const [owner, admin] = testUsers;
-    describe("addSponsoredTripTreasure", () => {
+    describe(path.basename(__filename, ".js"), () => {
         it("addSponsoredTripTreasure as Admin", async () => {
             await contract.setAdminWallet(admin.address, true);
             let isAdmin = await contract.adminWallets(admin.address);
             expect(isAdmin).to.equal(true);
 
             let treasure = {
-                collectionAddress: collection.sponsoredTrip,
+                collectionAddress: collection.sponsoredTrip.address,
                 tokenId: 1,
                 tokenIds: [],
                 claimedToken: 0,
