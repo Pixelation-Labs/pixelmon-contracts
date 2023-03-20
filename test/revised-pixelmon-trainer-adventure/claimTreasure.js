@@ -33,13 +33,12 @@ const claimTreasure = async(contract, testUsers, collection) => {
             }
             await expect(contract.connect(winners[1]).claimTreasure(weekNumber))
                 .to.be.revertedWith(ERC1155NotOwnerOrApproved);
-        })
-
-        it("Should claim Sponsored Trip prize", async() => {
             for (let token of Object.values(collection)) {
                 token.connect(admin).setApprovalForAll(contract.address, true);
             }
+        })
 
+        it("Should claim Sponsored Trip prize", async() => {
             for(let winner of winners.slice(0,2)) {
                 expect(Number(await collection.sponsoredTrip.balanceOf(winner.address, 1))).to.be.equal(0);
                 await contract.connect(winner).claimTreasure(weekNumber);
