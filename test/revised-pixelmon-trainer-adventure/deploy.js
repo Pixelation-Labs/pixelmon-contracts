@@ -27,7 +27,7 @@ const addPrizeToVault = async (vault) => {
     const collection = Object();
 
     const PixelmonTrainerGear = await hre.ethers.getContractFactory("PixelmonTrainerGear");
-    const PixelmonTrainerGearSupply = 2;
+    const PixelmonTrainerGearSupply = 150;
     const pixelmonTrainerGearContractUtils = await PixelmonTrainerGear.deploy(METADATA_BASE_URI);
     await pixelmonTrainerGearContractUtils.deployed();
 

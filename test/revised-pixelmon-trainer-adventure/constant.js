@@ -3,6 +3,7 @@ module.exports = {
     ERC1155NotOwnerOrApproved: "ERC1155: caller is not token owner or approved",
     ErrorNotOwner: "Ownable: caller is not the owner",
     CallbackGasLimit: 400000,
+    InsufficientToken: "InsufficientToken",
     InvalidClaimingPeriod: "InvalidClaimingPeriod",
     InvalidDuration: "InvalidDuration",
     InvalidLength: "InvalidLength",
