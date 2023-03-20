@@ -10,7 +10,7 @@ const addSponsoredTripTreasure = async (contract, testUsers, collection) => {
             expect(isAdmin).to.equal(true);
 
             let treasure = {
-                collectionAddress: collection.sponsoredTrip,
+                collectionAddress: collection.sponsoredTrip.address,
                 tokenId: 1,
                 tokenIds: [],
                 claimedToken: 0,

@@ -13,7 +13,7 @@ const addTreasure = async (contract, testUsers, collection) => {
             expect(Number(totalTreasure)).to.equal(0);
             for (let tokenId = 1; tokenId <= 6; tokenId++) {
                 let treasure = {
-                    collectionAddress: collection.trainerGear,
+                    collectionAddress: collection.trainerGear.address,
                     tokenId: tokenId,
                     tokenIds: [],
                     claimedToken: 0,
@@ -32,7 +32,7 @@ const addTreasure = async (contract, testUsers, collection) => {
             }
 
             let treasure = {
-                collectionAddress: collection.trainer,
+                collectionAddress: collection.trainer.address,
                 tokenId: 0,
                 tokenIds: Array.from({ length: 50 }, (_, i) => i + 1),
                 claimedToken: 0,

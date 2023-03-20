@@ -7,8 +7,7 @@ const {
     InvalidUpdationPeriod,
     NotModerator,
     PrizeUpdationDuration,
-    WeeklyDuration,
-    WinnerUpdationDuration
+    WeeklyWinnersSet
 } = require("./constant");
 
 const updateWeeklyWinners = async(contract, testUsers) => {
@@ -35,11 +34,11 @@ const updateWeeklyWinners = async(contract, testUsers) => {
 
         it("Should update winner of the week", async() => {
             const weekNumber = 1;
-            await contract.connect(moderator).updateWeeklyWinners(
+            await expect(contract.connect(moderator).updateWeeklyWinners(
                 weekNumber,
                 winners,
                 prizeAmount
-            );
+            )).to.emit(contract, WeeklyWinnersSet);
 
             const weekData = await contract.getWeekInfo(weekNumber);
             for(let winner of weekData.tripWinners) {

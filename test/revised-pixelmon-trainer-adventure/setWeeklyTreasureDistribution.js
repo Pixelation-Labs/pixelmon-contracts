@@ -16,7 +16,7 @@ const setWeeklyTreasureDistribution = async(contract, testUsers, blockTimestamp)
         it("Should set weekly distribution", async() => {
             let weekNumber = 1;
             const treasureIndex = [1,2];
-            const count = [2,2]
+            const count = [1,3]
 
             await contract.connect(admin).setWeeklyTreasureDistribution(
                 weekNumber,
