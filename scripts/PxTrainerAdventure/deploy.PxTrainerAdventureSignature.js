@@ -13,9 +13,9 @@ async function main() {
     // manually to make sure everything is compiled
     // await hre.run('compile');
     // We get the contract to deploy
-    
+    let _signer = process.env.SIGNER;
     const PxTrainerAdventureSignature = await hre.ethers.getContractFactory("PxTrainerAdventureSignature");
-    const pxTrainerAdventureSignature = await PxTrainerAdventureSignature.deploy();
+    const pxTrainerAdventureSignature = await PxTrainerAdventureSignature.deploy(_signer);
     await pxTrainerAdventureSignature.deployed();
     console.log("pxTrainerAdventureSignature deployed to:", pxTrainerAdventureSignature.address);
 }
