@@ -37,11 +37,6 @@ const addPrizeToVault = async (vault) => {
     collection.trainerGear = pixelmonTrainerGearContractUtils;
     await pixelmonTrainerGearContractUtils.setMinterAddress(vault.address, true);
     await pixelmonTrainerGearContractUtils.connect(vault).mint(vault.address, 1, PixelmonTrainerGearSupply);
-    await pixelmonTrainerGearContractUtils.connect(vault).mint(vault.address, 2, PixelmonTrainerGearSupply);
-    await pixelmonTrainerGearContractUtils.connect(vault).mint(vault.address, 3, PixelmonTrainerGearSupply);
-    await pixelmonTrainerGearContractUtils.connect(vault).mint(vault.address, 4, PixelmonTrainerGearSupply);
-    await pixelmonTrainerGearContractUtils.connect(vault).mint(vault.address, 5, PixelmonTrainerGearSupply);
-    await pixelmonTrainerGearContractUtils.connect(vault).mint(vault.address, 6, PixelmonTrainerGearSupply);
 
     const PixelmonSponsoredTrips = await ethers.getContractFactory("PixelmonSponsoredTrips");
     const PixelmonSponsoredTripsSupply = 40;
@@ -54,7 +49,7 @@ const addPrizeToVault = async (vault) => {
     const PixelmonTrainer = await ethers.getContractFactory(
         "PixelmonTrainer"
     );
-    const PixelmonTrainerSupply = 50;
+    const PixelmonTrainerSupply = 3;
     const PixelmonTrainerUtils = await PixelmonTrainer.deploy(
         "Trainer",
         "TRN",
@@ -141,6 +136,7 @@ describe(`${contractName} contract`, () => {
         const [_, admin] = testUsers;
         await setVaultAddress(contract, testUsers);
         const collection = await addPrizeToVault(admin);
+        await collection.trainerGear.setAllowedToTransfer(contract.address, true);
 
         await addTreasure(contract, testUsers, collection);
         await addSponsoredTripTreasure(contract, testUsers, collection);
@@ -148,9 +144,8 @@ describe(`${contractName} contract`, () => {
         await setWeeklyTreasureDistribution(contract, testUsers, blockTimestamp);
         await setWeeklySponsoredTripDistribution(contract, testUsers, blockTimestamp);
         await updateWeeklyWinners(contract, testUsers);
-        await claimTreasure(contract, testUsers, collection);
-        await updateWeeklyWinners(contract, testUsers);
-        await testSignature(pxTrainerAdventureSignature, testUsers, createSignature);
+        await claimTreasure(contract, testUsers, collection, createSignature);
+        await testSignature(contract, testUsers, createSignature);
         await chainLinkMockTest(contract, testUsers);
     });
 });

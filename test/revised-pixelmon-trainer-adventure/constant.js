@@ -1,4 +1,5 @@
 module.exports = {
+    AlreadyClaimed: "AlreadyClaimed",
     ERC1155NotOwnerOrApproved: "ERC1155: caller is not token owner or approved",
     ErrorNotOwner: "Ownable: caller is not the owner",
     CallbackGasLimit: 400000,
@@ -6,11 +7,13 @@ module.exports = {
     InvalidDuration: "InvalidDuration",
     InvalidLength: "InvalidLength",
     InvalidTimeStamp: "InvalidTimeStamp",
+    InvalidTreasureIndex: "InvalidTreasureIndex",
     InvalidUpdationPeriod: "InvalidUpdationPeriod",
     InvalidWeekNumber: "InvalidWeekNumber",
     NotAdmin: "NotAdmin",
     NotModerator: "NotModerator",
     PrizeUpdationDuration: 10000,
+    TreasureTransferred: "TreasureTransferred",
     WinnerUpdationDuration: 20000,
     WeeklyDuration: 50000,
     WeeklyWinnersSet: "WeeklyWinnersSet"

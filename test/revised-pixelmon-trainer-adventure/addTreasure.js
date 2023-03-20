@@ -11,27 +11,26 @@ const addTreasure = async (contract, testUsers, collection) => {
 
             let totalTreasure = await contract.totalTreasures();
             expect(Number(totalTreasure)).to.equal(0);
-            for (let tokenId = 1; tokenId <= 6; tokenId++) {
-                let treasure = {
-                    collectionAddress: collection.trainerGear.address,
-                    tokenId: tokenId,
-                    tokenIds: [],
-                    claimedToken: 0,
-                    contractType: await contract.ERC_1155_TYPE(),
-                    treasureType: 1
-                };
-                await contract.connect(admin).addTreasures(treasure);
-                totalTreasure = await contract.totalTreasures();
-                expect(Number(totalTreasure)).to.equal(tokenId);
-                let treasureData = await contract.treasures(Number(totalTreasure));
-                expect(treasureData.collectionAddress).to.equal(treasure.collectionAddress);
-                expect(Number(treasureData.tokenId)).to.equal(treasure.tokenId);
-                expect(Number(treasureData.claimedToken)).to.equal(treasure.claimedToken);
-                expect(Number(treasureData.contractType)).to.equal(treasure.contractType);
-                expect(Number(treasureData.treasureType)).to.equal(treasure.treasureType);
-            }
-
+            const tokenId = 1;
             let treasure = {
+                collectionAddress: collection.trainerGear.address,
+                tokenId: tokenId,
+                tokenIds: [],
+                claimedToken: 0,
+                contractType: await contract.ERC_1155_TYPE(),
+                treasureType: 1
+            };
+            await contract.connect(admin).addTreasures(treasure);
+            totalTreasure = await contract.totalTreasures();
+            expect(Number(totalTreasure)).to.equal(tokenId);
+            let treasureData = await contract.treasures(Number(totalTreasure));
+            expect(treasureData.collectionAddress).to.equal(treasure.collectionAddress);
+            expect(Number(treasureData.tokenId)).to.equal(treasure.tokenId);
+            expect(Number(treasureData.claimedToken)).to.equal(treasure.claimedToken);
+            expect(Number(treasureData.contractType)).to.equal(treasure.contractType);
+            expect(Number(treasureData.treasureType)).to.equal(treasure.treasureType);
+
+            treasure = {
                 collectionAddress: collection.trainer.address,
                 tokenId: 0,
                 tokenIds: Array.from({ length: 50 }, (_, i) => i + 1),
@@ -41,8 +40,8 @@ const addTreasure = async (contract, testUsers, collection) => {
             };
             await contract.connect(admin).addTreasures(treasure);
             totalTreasure = await contract.totalTreasures();
-            expect(Number(totalTreasure)).to.equal(7);
-            let treasureData = await contract.treasures(Number(totalTreasure));
+            expect(Number(totalTreasure)).to.equal(2);
+            treasureData = await contract.treasures(Number(totalTreasure));
             expect(treasureData.collectionAddress).to.equal(treasure.collectionAddress);
             expect(treasureData.tokenId).to.equal(treasure.tokenId);
             expect(Number(treasureData.claimedToken)).to.equal(treasure.claimedToken);

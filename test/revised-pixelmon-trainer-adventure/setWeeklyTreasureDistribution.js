@@ -2,6 +2,7 @@ const path = require("node:path");
 const { expect } = require("chai");
 const {
     InvalidLength,
+    InvalidTreasureIndex,
     InvalidUpdationPeriod,
     NotAdmin,
     PrizeUpdationDuration,
@@ -16,7 +17,7 @@ const setWeeklyTreasureDistribution = async(contract, testUsers, blockTimestamp)
         it("Should set weekly distribution", async() => {
             let weekNumber = 1;
             const treasureIndex = [1,2];
-            const count = [1,3]
+            const count = [1,2]
 
             await contract.connect(admin).setWeeklyTreasureDistribution(
                 weekNumber,
@@ -64,6 +65,24 @@ const setWeeklyTreasureDistribution = async(contract, testUsers, blockTimestamp)
                 treasureIndex,
                 count
             )).to.be.revertedWithCustomError(contract, InvalidLength);
+        })
+
+        it("Should not input nonexist treasureIndex", async()=> {
+            let weekNumber = 1;
+            let treasureIndex = [0];
+            let count = [1];
+            await expect(contract.connect(admin).setWeeklyTreasureDistribution(
+                weekNumber,
+                treasureIndex,
+                count
+            )).to.be.revertedWithCustomError(contract, InvalidTreasureIndex);
+
+            treasureIndex = [999999]
+            await expect(contract.connect(admin).setWeeklyTreasureDistribution(
+                weekNumber,
+                treasureIndex,
+                count
+            )).to.be.revertedWithCustomError(contract, InvalidTreasureIndex);
         })
 
         it("Only admin can set weekly treasure distribution", async() => {
