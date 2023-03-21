@@ -9,6 +9,7 @@ import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "./Utils.sol";
 
 /// @notice Thrown when end timestamp is less than equal to start timestamp
 error InvalidTimeStamp();
@@ -29,7 +30,7 @@ error NotModerator();
 /// @notice Thrown when length of both arrays are not equal
 error InvalidLength();
 
-contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
+contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2, Utils {
     /// @notice Amount of random number requested to Chainlink
     uint32 public constant Random_Number_Count = 3;
 
@@ -73,16 +74,16 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
         uint256 tokenId;
         uint256[] tokenIds;
         uint256 claimedToken;
-        uint256 contractType;
-        uint256 treasureType;
+        uint8 contractType;
+        uint8 treasureType;
     }
 
     /// @notice Struct object to store information about prize that distributed within a week
     /// @param treasureIndex Index of the prize in the smart contract
     /// @param totalSupply Total supply of the prize within a week
     struct TreasureDistribution {
-        uint256 treasureIndex;
-        uint256 totalSupply;
+        uint8 treasureIndex;
+        uint16 totalSupply;
     }
 
     /// @notice Struct object to store week information
@@ -108,9 +109,9 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
         uint256 claimStartTimeStamp;
         uint256 endTimeStamp;
         uint256 remainingSupply;
-        uint256 treasureCount;
-        uint256 sponsoredTripsCount;
-        uint256 availabletripsCount;
+        uint8 treasureCount;
+        uint8 sponsoredTripsCount;
+        uint8 availabletripsCount;
         uint256[] randomNumbers;
         address[] tripWinners;
         mapping(address => bool) tripWinnersMap;
@@ -137,11 +138,11 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
         uint256 claimStartTimeStamp;
         uint256 endTimeStamp;
         uint256 remainingSupply;
-        uint256 treasureCount;
-        uint256 sponsoredTripsCount;
+        uint8 treasureCount;
+        uint8 availabletripsCount;
+        uint8 sponsoredTripsCount;
         uint256[] randomNumbers;
         address[] tripWinners;
-        uint256 availabletripsCount;
     }
 
     /// @notice Total week to claim treasure
@@ -218,16 +219,6 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
         _;
     }
 
-    /// @notice Check whether both array input has the same length
-    /// @param length1 First length of the array input
-    /// @param length2 Second length of the array input
-    modifier validArrayLength(uint256 length1, uint256 length2) {
-        if (length1 != length2) {
-            revert InvalidLength();
-        }
-        _;
-    }
-
     /// @notice Emit when calling fulfillRandomWords function
     /// @param weekNumber The week number when the request is sent to Chainlink
     /// @param RandomWords The input random words
@@ -288,7 +279,7 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
     /// @return requestId Chainlink requestId
     function generateChainLinkRandomNumbers(
         uint256 _weekNumber
-    ) external onlyModerator(msg.sender) validWinnerUpdationPeriod(_weekNumber) validWeekNumber(_weekNumber) returns (uint256 requestId) {
+    ) external onlyModerator(msg.sender) validWinnerUpdationPeriod(_weekNumber) returns (uint256 requestId) {
         requestId = COORDINATOR.requestRandomWords(keyHash, chainLinkSubscriptionId, requestConfirmations, callbackGasLimit, Random_Number_Count);
         requests[requestId] = Request({randomWords: new uint256[](0), exists: true, fulfilled: false, weekNumber: _weekNumber});
         requestIds.push(requestId);
@@ -352,7 +343,7 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
         if (_weeklyDuration <= (_prizeUpdationDuration + _winnerUpdationDuration)) {
             revert InvalidDuration();
         }
-        for (uint256 index = 0; index < _numberOfWeeks; index++) {
+        for (uint256 index = 0; index < _numberOfWeeks; index = _uncheckedInc(index)) {
             totalWeek++;
             weekInfos[totalWeek].startTimeStamp = _startTimeStamp;
             weekInfos[totalWeek].ticketDrawTimeStamp = _startTimeStamp + _prizeUpdationDuration;
@@ -378,7 +369,8 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2 {
         week.availabletripsCount = weekInfos[_weekNumber].availabletripsCount;
     }
 
-    function getWeeklyClaimedCount(uint256 _weekNumber, address _walletAddress ) external view returns (uint8 count) {
+    function getWeeklyClaimedCount(uint256 _weekNumber, address _walletAddress) external view returns (uint8 count) {
         return weekInfos[_weekNumber].winners[_walletAddress].claimed;
     }
+    
 }
