@@ -9,7 +9,7 @@ const addTreasure = async (contract, testUsers, collection) => {
             let isAdmin = await contract.adminWallets(admin.address);
             expect(isAdmin).to.equal(true);
 
-            let totalTreasure = await contract.totalTreasures();
+            let totalTreasure = await contract.totalTreasureCount();
             expect(Number(totalTreasure)).to.equal(0);
             const tokenId = 1;
             let treasure = {
@@ -21,7 +21,7 @@ const addTreasure = async (contract, testUsers, collection) => {
                 treasureType: 1
             };
             await contract.connect(admin).addTreasures(treasure);
-            totalTreasure = await contract.totalTreasures();
+            totalTreasure = await contract.totalTreasureCount();
             expect(Number(totalTreasure)).to.equal(tokenId);
             let treasureData = await contract.treasures(Number(totalTreasure));
             expect(treasureData.collectionAddress).to.equal(treasure.collectionAddress);
@@ -39,7 +39,7 @@ const addTreasure = async (contract, testUsers, collection) => {
                 treasureType: 2
             };
             await contract.connect(admin).addTreasures(treasure);
-            totalTreasure = await contract.totalTreasures();
+            totalTreasure = await contract.totalTreasureCount();
             expect(Number(totalTreasure)).to.equal(2);
             treasureData = await contract.treasures(Number(totalTreasure));
             expect(treasureData.collectionAddress).to.equal(treasure.collectionAddress);

@@ -26,8 +26,8 @@ contract PxTrainerAdventure is WinnerSelectionManager, ReentrancyGuard {
     /// @notice code number for ERC721 token
     uint8 public constant ERC_721_TYPE = 2;
 
-    /// @dev Signature Contract Address
-    IPxTrainerAdventureSignature public signatureContractAddress;
+    /// @dev Signature Contract
+    IPxTrainerAdventureSignature public signatureContract;
 
     /// @notice Wallet address that keeps all prizes
     address public vaultWalletAddress;
@@ -79,11 +79,11 @@ contract PxTrainerAdventure is WinnerSelectionManager, ReentrancyGuard {
         bytes32 _keyHash,
         address _pxSignatureAddress
     ) WinnerSelectionManager(_vrfCoordinator, _chainLinkSubscriptionId, _keyHash) {
-        signatureContractAddress = IPxTrainerAdventureSignature(_pxSignatureAddress);
+        signatureContract = IPxTrainerAdventureSignature(_pxSignatureAddress);
     }
 
     function setSignatureContractAddress(address _pxSignatureAddress) external onlyOwner {
-        signatureContractAddress = IPxTrainerAdventureSignature(_pxSignatureAddress);
+        signatureContract = IPxTrainerAdventureSignature(_pxSignatureAddress);
     }
 
     /// @notice Set address to become vault
@@ -127,7 +127,7 @@ contract PxTrainerAdventure is WinnerSelectionManager, ReentrancyGuard {
         if (!(block.timestamp >= weekInfos[_weekNumber].claimStartTimeStamp && block.timestamp <= weekInfos[_weekNumber].endTimeStamp)) {
             revert InvalidClaimingPeriod();
         }
-        bool isValidSigner = signatureContractAddress.recoverSignerFromSignature(
+        bool isValidSigner = signatureContract.recoverSignerFromSignature(
             _weekNumber,
             weekInfos[_weekNumber].winners[msg.sender].claimed,
             msg.sender,

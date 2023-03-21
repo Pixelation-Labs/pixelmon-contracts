@@ -77,7 +77,7 @@ const setWeeklyTreasureDistribution = async(contract, testUsers, blockTimestamp)
                 count
             )).to.be.revertedWithCustomError(contract, InvalidTreasureIndex);
 
-            treasureIndex = [999999]
+            treasureIndex = [200]
             await expect(contract.connect(admin).setWeeklyTreasureDistribution(
                 weekNumber,
                 treasureIndex,

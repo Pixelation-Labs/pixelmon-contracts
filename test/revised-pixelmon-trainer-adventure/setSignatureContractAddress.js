@@ -7,9 +7,9 @@ const setSignatureContractAddress = async (contract, testUsers, pxTrainerAdventu
     describe(path.basename(__filename, ".js"), () => {
         it("Set signature contract address", async () => {
             await contract.setSignatureContractAddress(contract.address);
-            expect(await contract.SIGNATURE_CONTRACT()).to.be.equal(contract.address);
+            expect(await contract.signatureContract()).to.be.equal(contract.address);
             await contract.setSignatureContractAddress(pxTrainerAdventureSignature.address);
-            expect(await contract.SIGNATURE_CONTRACT()).to.be.equal(pxTrainerAdventureSignature.address);
+            expect(await contract.signatureContract()).to.be.equal(pxTrainerAdventureSignature.address);
         });
 
         it("Only owner can set signature contract address", async () => {

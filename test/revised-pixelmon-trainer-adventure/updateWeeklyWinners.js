@@ -54,7 +54,7 @@ const updateWeeklyWinners = async(contract, testUsers) => {
                 weekNumber,
                 winners,
                 prizeAmount
-            )).to.be.revertedWithCustomError(contract, InvalidWeekNumber);
+            )).to.be.revertedWithCustomError(contract, InvalidUpdationPeriod);
         })
 
         it("Should input winner and prize amount array with the same length", async() => {
