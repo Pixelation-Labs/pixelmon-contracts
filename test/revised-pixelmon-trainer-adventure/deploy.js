@@ -18,6 +18,7 @@ const { updateWeeklyWinners } = require("./updateWeeklyWinners");
 const { claimTreasure } = require("./claimTreasure");
 const { chainLinkMockTest } = require("./chainlinkMockTest");
 const { setSignatureContractAddress } = require("./setSignatureContractAddress");
+const { testNoContractModifier } = require("./testNoContractModifier");
 
 const contractName = "PxTrainerAdventure";
 
@@ -99,10 +100,15 @@ describe(`${contractName} contract`, () => {
     let contract;
     let testUsers;
     let pxTrainerAdventureSignature;
+    let AttackerSmartContract;
 
     it("Should deploy contract", async () => {
         testUsers = await ethers.getSigners();
         let signer = testUsers[7];
+
+        const Attacker = await ethers.getContractFactory("TrainerAdventureAttacker");
+        AttackerSmartContract = await Attacker.deploy();
+        await AttackerSmartContract.deployed();
 
         const PxTrainerAdventureSignature = await hre.ethers.getContractFactory("PxTrainerAdventureSignature");
         pxTrainerAdventureSignature = await PxTrainerAdventureSignature.deploy(signer.address);
@@ -149,5 +155,6 @@ describe(`${contractName} contract`, () => {
         await claimTreasure(contract, testUsers, collection, blockTimestamp, createSignature, pxTrainerAdventureSignature);
         await testSignature(contract, testUsers, createSignature, pxTrainerAdventureSignature);
         await setSignatureContractAddress(contract, testUsers, pxTrainerAdventureSignature);
+        await testNoContractModifier(contract, AttackerSmartContract);
     });
 });
