@@ -7,7 +7,7 @@ pragma solidity ^0.8.16;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./IPxChainlinkManager.sol";
-import "./Utils.sol";
+import "./PxUtils.sol";
 
 /// @notice Thrown when end timestamp is less than equal to start timestamp
 error InvalidTimeStamp();
@@ -28,7 +28,7 @@ error NotModerator();
 /// @notice Thrown when length of both arrays are not equal
 error InvalidLength();
 
-contract WinnerSelectionManager is Ownable, Utils {
+contract PxWeekManager is Ownable, PxUtils {
     
     /// @notice Struct object for winner information
     /// @param claimLimit Maximum prize that can be claimed by winner

@@ -3,7 +3,7 @@ pragma solidity ^0.8.16;
 
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "./WinnerSelectionManager.sol";
+import "./PxWeekManager.sol";
 import "./IPxChainlinkManager.sol";
 
 /// @notice Thrown when all prizes are already claimed
@@ -19,7 +19,7 @@ error InsufficientToken();
 /// @notice Thrown when the input signature is invalid.
 error InvalidSignature();
 
-contract PxTrainerAdventure is WinnerSelectionManager, ReentrancyGuard {
+contract PxTrainerAdventure is PxWeekManager, ReentrancyGuard {
     /// @notice code number for ERC1155 token
     uint8 public constant ERC_1155_TYPE = 1;
     /// @notice code number for ERC721 token
@@ -69,10 +69,10 @@ contract PxTrainerAdventure is WinnerSelectionManager, ReentrancyGuard {
 
     /// @notice The contract constructor
     /// @dev The constructor parameters only used as input
-    ///      from WinnerSelectionManager contract
+    ///      from PxWeekManager contract
     ///        More https://docs.chain.link/docs/vrf/v2/subscription/supported-networks/#configurations
     /// @param _pxChainlinkContractAddress Signature contract address
-    constructor(address _pxChainlinkContractAddress) WinnerSelectionManager() {
+    constructor(address _pxChainlinkContractAddress) PxWeekManager() {
         pxChainlinkManagerContract = IPxChainlinkManager(_pxChainlinkContractAddress);
     }
 

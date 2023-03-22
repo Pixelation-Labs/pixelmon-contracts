@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.16;
 
-contract Utils {
+contract PxUtils {
     modifier noContracts() {
         uint256 size;
         address acc = msg.sender;
