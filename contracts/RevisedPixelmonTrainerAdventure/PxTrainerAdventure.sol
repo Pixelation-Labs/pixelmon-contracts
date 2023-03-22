@@ -46,6 +46,11 @@ contract PxTrainerAdventure is PxWeekManager, ReentrancyGuard {
         _;
     }
 
+    /// @notice Check prize token type and token ID input
+    /// @dev Only ERC1155 and ERC721 are supported
+    ///      When adding ERC1155, only 1 token ID in integer can be added for each call
+    ///      When adding ERC721, it requires an array of token ID as input for each call
+    /// @param _treasure Prize information
     modifier validTreasure(Treasure memory _treasure) {
         if (_treasure.contractType != ERC_1155_TYPE && _treasure.contractType != ERC_721_TYPE) {
             revert InvalidInput();
@@ -76,6 +81,9 @@ contract PxTrainerAdventure is PxWeekManager, ReentrancyGuard {
         pxChainlinkManagerContract = IPxChainlinkManager(_pxChainlinkContractAddress);
     }
 
+    /// @notice Set Chainlink manager contract address
+    /// @dev Chainlink manager is used as signer and to interact with Chainlink
+    /// @param _pxChainlinkContractAddress Chainlink manager contract address
     function setpxChainlinkManagerContractAddress(address _pxChainlinkContractAddress) external onlyOwner {
         pxChainlinkManagerContract = IPxChainlinkManager(_pxChainlinkContractAddress);
     }
@@ -86,12 +94,20 @@ contract PxTrainerAdventure is PxWeekManager, ReentrancyGuard {
         vaultWalletAddress = _walletAddress;
     }
 
+    /// @notice Add prize information
+    /// @dev This method is used to add information about the prize that exists
+    ///      in the vault wallet address. Only admin can call this method
+    /// @param _treasure Prize information
     function addTreasures(Treasure memory _treasure) external onlyAdmin(msg.sender) validTreasure(_treasure) {
         totalTreasureCount++;
         _treasure.claimedToken = 0;
         treasures[totalTreasureCount] = _treasure;
     }
 
+    /// @notice Update existing prize information
+    /// @dev Only admin can call this method
+    /// @param _index Prize index
+    /// @param _treasure New prize information
     function updateTreasure(uint256 _index, Treasure memory _treasure) external onlyAdmin(msg.sender) validTreasure(_treasure) {
         _treasure.claimedToken = 0;
         treasures[_index] = _treasure;

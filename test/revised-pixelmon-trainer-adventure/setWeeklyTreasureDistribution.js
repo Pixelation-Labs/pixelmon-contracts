@@ -25,7 +25,7 @@ const setWeeklyTreasureDistribution = async(contract, testUsers, blockTimestamp)
                 treasureIndex,
                 count,
                 sponsorTripsCount
-            )
+            );
 
             const weekData = await contract.weekInfos(weekNumber);
             expect(Number(weekData.startTimeStamp)).to.be.equal(blockTimestamp);
@@ -36,6 +36,9 @@ const setWeeklyTreasureDistribution = async(contract, testUsers, blockTimestamp)
             expect(Number(weekData.treasureCount)).to.be.equal(treasureIndex.length);
             expect(Number(weekData.sponsoredTripsCount)).to.be.equal(sponsorTripsCount);
             expect(Number(weekData.availabletripsCount)).to.be.equal(sponsorTripsCount);
+
+            let weeklyDistribution = await contract.getWeeklyDistributions(weekNumber);
+            console.log(weeklyDistribution)
         });
 
         it("Should not set weekly prize before its period", async() => {
