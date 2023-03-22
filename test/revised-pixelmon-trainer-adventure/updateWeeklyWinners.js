@@ -34,6 +34,13 @@ const updateWeeklyWinners = async(contract, testUsers) => {
 
         it("Should update winner of the week", async() => {
             const weekNumber = 1;
+
+            await expect(contract.connect(moderator).updateWeeklyWinners(
+                weekNumber,
+                winners,
+                [2,2,3]
+            )).to.be.revertedWith("Invalid Treasure Amount");
+
             await expect(contract.connect(moderator).updateWeeklyWinners(
                 weekNumber,
                 winners,

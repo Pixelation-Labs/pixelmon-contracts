@@ -17,7 +17,12 @@ const setCallbackGasLimit = async(contract, testUsers) => {
         it("Only owner can set callback gas limit", async () => {
             await expect(contract.connect(user1).setCallbackGasLimit(10000))
                 .to.be.revertedWith(ErrorNotOwner)
-        })
+        });
+
+        it("Other wallet will not be able to call generate chainlink random number method", async () => {
+            await expect(contract.generateChainLinkRandomNumbers(1))
+                .to.be.revertedWithCustomError(contract, "NotAllowedToCall");
+        });
     })
 }
 

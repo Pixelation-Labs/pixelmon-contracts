@@ -22,7 +22,7 @@ const addTreasure = async (contract, testUsers, collection) => {
             };
             await contract.connect(admin).addTreasures(treasure);
             totalTreasure = await contract.totalTreasureCount();
-            expect(Number(totalTreasure)).to.equal(tokenId);
+            expect(Number(totalTreasure)).to.equal(1);
             let treasureData = await contract.treasures(Number(totalTreasure));
             expect(treasureData.collectionAddress).to.equal(treasure.collectionAddress);
             expect(Number(treasureData.tokenId)).to.equal(treasure.tokenId);
@@ -61,49 +61,49 @@ const addTreasure = async (contract, testUsers, collection) => {
             // await expect(contract.connect(admin).addTreasures(treasure))
             //     .to.be.revertedWithCustomError(contract, "InvalidInput");
 
-            // treasure = {
-            //     collectionAddress: owner.address,
-            //     tokenId: 1,
-            //     tokenIds: [],
-            //     claimedToken: 0,
-            //     contractType: 0,
-            //     treasureType: 1
-            // };
+            treasure = {
+                collectionAddress: owner.address,
+                tokenId: 1,
+                tokenIds: [],
+                claimedToken: 0,
+                contractType: 0,
+                treasureType: 1
+            };
 
-            // await expect(contract.connect(admin).addTreasures(treasure)).to.be.revertedWithCustomError(contract, "InvalidInput");
+            await expect(contract.connect(admin).addTreasures(treasure)).to.be.revertedWithCustomError(contract, "InvalidInput");
 
-            // treasure = {
-            //     collectionAddress: owner.address,
-            //     tokenId: 1,
-            //     tokenIds: [],
-            //     claimedToken: 0,
-            //     contractType: 3,
-            //     treasureType: 1
-            // };
-            // await expect(contract.connect(admin).addTreasures(treasure)).to.be.revertedWithCustomError(contract, "InvalidInput");
+            treasure = {
+                collectionAddress: owner.address,
+                tokenId: 1,
+                tokenIds: [],
+                claimedToken: 0,
+                contractType: 3,
+                treasureType: 1
+            };
+            await expect(contract.connect(admin).addTreasures(treasure)).to.be.revertedWithCustomError(contract, "InvalidInput");
 
-            // treasure = {
-            //     collectionAddress: owner.address,
-            //     tokenId: 1,
-            //     tokenIds: [1, 2],
-            //     claimedToken: 0,
-            //     contractType: 1,
-            //     treasureType: 1
-            // };
+            treasure = {
+                collectionAddress: owner.address,
+                tokenId: 1,
+                tokenIds: [1, 2],
+                claimedToken: 0,
+                contractType: 1,
+                treasureType: 1
+            };
 
-            // await expect(contract.connect(admin).addTreasures(treasure))
-            //     .to.be.revertedWithCustomError(contract, "InvalidInput");
+            await expect(contract.connect(admin).addTreasures(treasure))
+                .to.be.revertedWithCustomError(contract, "InvalidInput");
 
-            // treasure = {
-            //     collectionAddress: owner.address,
-            //     tokenId: 1,
-            //     tokenIds: [],
-            //     claimedToken: 0,
-            //     contractType: 2,
-            //     treasureType: 1
-            // };
+            treasure = {
+                collectionAddress: owner.address,
+                tokenId: 1,
+                tokenIds: [],
+                claimedToken: 0,
+                contractType: 2,
+                treasureType: 1
+            };
 
-            // await expect(contract.connect(admin).addTreasures(treasure)).to.be.revertedWithCustomError(contract, "InvalidInput");
+            await expect(contract.connect(admin).addTreasures(treasure)).to.be.revertedWithCustomError(contract, "InvalidInput");
 
             treasure = {
                 collectionAddress: owner.address,
@@ -114,6 +114,9 @@ const addTreasure = async (contract, testUsers, collection) => {
                 treasureType: 1
             };
             await contract.connect(admin).addTreasures(treasure);
+
+            totalTreasure = await contract.totalTreasureCount();
+            await contract.connect(admin).updateTreasure(totalTreasure, treasure);
         });
 
         it("Only admin can add treasure", async () => {
