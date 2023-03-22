@@ -2,6 +2,7 @@ module.exports = {
     skipFiles: [
         'mock',
         'PixelmonNFT',
-        // 'PixelmonTrainerAdventure/mock'
+        //'RevisedPixelmonTrainerAdventure/Mock/TrainerAdventureAttacker.sol',
+        //'PixelmonTrainerAdventure/Utils.sol'
     ]
 };

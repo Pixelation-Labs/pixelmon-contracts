@@ -3,157 +3,210 @@ pragma solidity ^0.8.16;
 
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "./WinnerSelectionManager.sol";
-import "./Utils.sol";
+import "./PxWeekManager.sol";
+import "./IPxChainlinkManager.sol";
 
-/// @notice Thrown when treasure is already claimed by the same user in the same week
-error ALreadyClaimed();
-/// @notice Thrown when address is not part of the winner Merkle Tree
+/// @notice Thrown when all prizes are already claimed
+error AlreadyClaimed();
+/// @notice Thrown when address is not a winner
 error NotAWinner();
+/// @notice Thrown when input is not as expected condition
 error InvalidInput();
+/// @notice Thrown when inputting non-exist treasure index
 error InvalidTreasureIndex();
+/// @notice Thrown when no available prizes to be transferred to the winner
 error InsufficientToken();
-error NotEnoughWinnersForSponsoredTrip();
+/// @notice Thrown when the input signature is invalid.
+error InvalidSignature();
 
-contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
-    uint256 public constant ERC_1155_TYPE = 1;
-    uint256 public constant ERC_721_TYPE = 2;
+contract PxTrainerAdventure is PxWeekManager, ReentrancyGuard {
+    /// @notice code number for ERC1155 token
+    uint8 public constant ERC_1155_TYPE = 1;
+    /// @notice code number for ERC721 token
+    uint8 public constant ERC_721_TYPE = 2;
 
+    /// @notice Wallet address that keeps all prizes
     address public vaultWalletAddress;
 
-    uint256 public claimIndexCount;
-    uint256 public totalTreasures;
+    /// @notice Variable to store Sponsored Trips prize information such
+    ///         as the collection address, token ID, amount, and token type
     Treasure public sponsoredTrip;
-    mapping(uint256 => Treasure) public treasures;
+    /// @notice List of address who owns Sponsored Trips
+    /// @custom:key wallet address
+    /// @custom:value 'true' means already own Sponsored Trips
     mapping(address => bool) public sponsoredTripWinners;
 
-    event TreasureTransferred(
-        uint256 weekNumber,
-        uint256 requestId,
-        address userWallet,
-        address collectionAddress,
-        uint256 tokenId,
-        uint256 tokenType,
-        uint256 randomNumber
-    );
+    /// @notice Check whether both array input has the same length
+    /// @param length1 First length of the array input
+    /// @param length2 Second length of the array input
+    modifier validArrayLength(uint256 length1, uint256 length2) {
+        if (length1 != length2) {
+            revert InvalidLength();
+        }
+        _;
+    }
 
-    constructor(
-        address _vrfCoordinator,
-        uint64 _chainLinkSubscriptionId,
-        bytes32 _keyHash
-    ) WinnerSelectionManager(_vrfCoordinator, _chainLinkSubscriptionId, _keyHash) {}
+    modifier validTreasure(Treasure memory _treasure) {
+        if (_treasure.contractType != ERC_1155_TYPE && _treasure.contractType != ERC_721_TYPE) {
+            revert InvalidInput();
+        }
+        if (
+            (_treasure.contractType == ERC_1155_TYPE && _treasure.tokenIds.length > 0) ||
+            (_treasure.contractType == ERC_721_TYPE && _treasure.tokenIds.length == 0)
+        ) {
+            revert InvalidInput();
+        }
+        _;
+    }
 
+    /// @notice Emit when a prize is claimed
+    /// @param weekNumber Week number when the prize is claimed
+    /// @param userWallet Wallet address who claims the prize
+    /// @param collectionAddress The origin address of the prize
+    /// @param tokenId The prize token ID in its origin address
+    /// @param tokenType The token type in its origin address
+    event TreasureTransferred(uint256 weekNumber, address userWallet, address collectionAddress, uint256 tokenId, uint256 tokenType);
+
+    /// @notice The contract constructor
+    /// @dev The constructor parameters only used as input
+    ///      from PxWeekManager contract
+    ///        More https://docs.chain.link/docs/vrf/v2/subscription/supported-networks/#configurations
+    /// @param _pxChainlinkContractAddress Signature contract address
+    constructor(address _pxChainlinkContractAddress) PxWeekManager() {
+        pxChainlinkManagerContract = IPxChainlinkManager(_pxChainlinkContractAddress);
+    }
+
+    function setpxChainlinkManagerContractAddress(address _pxChainlinkContractAddress) external onlyOwner {
+        pxChainlinkManagerContract = IPxChainlinkManager(_pxChainlinkContractAddress);
+    }
+
+    /// @notice Set address to become vault
+    /// @param _walletAddress Wallet address that will be the vault
     function setVaultWalletAddress(address _walletAddress) external onlyOwner {
         vaultWalletAddress = _walletAddress;
     }
 
-    function addTreasures(Treasure memory _treasure) external onlyAdmin(msg.sender) {
-        totalTreasures++;
-        if (_treasure.claimedToken != 0 || (_treasure.contractType != 1 && _treasure.contractType != 2)) {
-            revert InvalidInput();
-        }
-        if ((_treasure.contractType == 1 && _treasure.tokenIds.length > 0) || (_treasure.contractType == 2 && _treasure.tokenIds.length == 0)) {
-            revert InvalidInput();
-        }
-        treasures[totalTreasures] = _treasure;
+    function addTreasures(Treasure memory _treasure) external onlyAdmin(msg.sender) validTreasure(_treasure) {
+        totalTreasureCount++;
+        _treasure.claimedToken = 0;
+        treasures[totalTreasureCount] = _treasure;
     }
 
+    function updateTreasure(uint256 _index, Treasure memory _treasure) external onlyAdmin(msg.sender) validTreasure(_treasure) {
+        _treasure.claimedToken = 0;
+        treasures[_index] = _treasure;
+    }
+
+    /// @notice Add Sponsored Trips prize to the smart contract
+    /// @dev Can only be called by administrators
+    /// @param _treasure Sponsored Trips information according to Treasure struct
     function addSponsoredTripTreasure(Treasure memory _treasure) external onlyAdmin(msg.sender) {
-        if (_treasure.claimedToken != 0 || _treasure.contractType != 1 || _treasure.tokenIds.length > 0) {
+        if (_treasure.claimedToken != 0 || _treasure.contractType != ERC_1155_TYPE || _treasure.tokenIds.length > 0) {
             revert InvalidInput();
         }
         sponsoredTrip = _treasure;
     }
 
-    function claimTreasure(uint256 _weekNumber) external nonReentrant noContracts {
+    /// @notice Claim prize for winner
+    /// @dev Only winner of the week can call this method
+    /// @param _weekNumber The week number to claim prize
+    /// @param _signature Signature from signer wallet
+    function claimTreasure(uint256 _weekNumber, bytes calldata _signature) external noContracts nonReentrant {
         if (!(block.timestamp >= weekInfos[_weekNumber].claimStartTimeStamp && block.timestamp <= weekInfos[_weekNumber].endTimeStamp)) {
             revert InvalidClaimingPeriod();
         }
-        Week storage week = weekInfos[_weekNumber];
-        if (week.winners[msg.sender].claimLimit == 0) {
+        bool isValidSigner = pxChainlinkManagerContract.recoverSignerFromSignature(
+            _weekNumber,
+            weekInfos[_weekNumber].winners[msg.sender].claimed,
+            msg.sender,
+            _signature
+        );
+
+        if (!isValidSigner) {
+            revert InvalidSignature();
+        }
+
+        if (weekInfos[_weekNumber].winners[msg.sender].claimLimit == 0) {
             revert NotAWinner();
         }
-        if (week.winners[msg.sender].claimed == weekInfos[_weekNumber].winners[msg.sender].claimLimit) {
-            revert ALreadyClaimed();
+        if (weekInfos[_weekNumber].winners[msg.sender].claimed == weekInfos[_weekNumber].winners[msg.sender].claimLimit) {
+            revert AlreadyClaimed();
         }
-        if (week.winners[msg.sender].claimed == 0) {
+        if (weekInfos[_weekNumber].winners[msg.sender].claimed == 0) {
             primaryClaim(_weekNumber);
         } else {
             secondaryClaim(_weekNumber);
         }
     }
 
+    /// @notice Method to claim the first prize
+    /// @dev This method is also used to claim Sponsor Trips if
+    ///      the winner selected to get one
+    /// @param _weekNumber The week number to claim prize
     function primaryClaim(uint256 _weekNumber) internal {
         Week storage week = weekInfos[_weekNumber];
         if (week.tripWinnersMap[msg.sender]) {
             sponsoredTripWinners[msg.sender] = true;
             week.tripWinnersMap[msg.sender] = false;
-            week.winners[msg.sender].claimed++;
-            week.availabletripsCount--;
-            sponsoredTrip.claimedToken++;
-            claimIndexCount++;
-            transferToken(sponsoredTrip);
-            claimIndexCount++;
-            emit TreasureTransferred(
-                _weekNumber,
-                claimIndexCount,
-                msg.sender,
-                sponsoredTrip.collectionAddress,
-                sponsoredTrip.tokenId,
-                sponsoredTrip.contractType,
-                0
-            );
+
+            unchecked {
+                week.winners[msg.sender].claimed++;
+                week.availabletripsCount--;
+                sponsoredTrip.claimedToken++;
+            }
+            transferToken(_weekNumber, sponsoredTrip);
         } else {
             uint256 randomNumber = getRandomNumber();
             uint256 random = randomNumber - ((randomNumber / week.remainingSupply) * week.remainingSupply) + 1;
 
             uint256 selectedIndex;
-            uint256 sumOfTotalSupply;
+            uint16 sumOfTotalSupply;
 
-            for (uint256 index = 1; index <= week.treasureCount; index++) {
+            for (uint256 index = 1; index <= week.treasureCount; index = _uncheckedInc(index)) {
                 if (week.distributions[index].totalSupply == 0) {
                     continue;
                 }
-                sumOfTotalSupply += week.distributions[index].totalSupply;
+                unchecked {
+                    sumOfTotalSupply += week.distributions[index].totalSupply;
+                }
                 if (random <= sumOfTotalSupply) {
                     selectedIndex = index;
                     break;
                 }
             }
             uint256 selectedTreasureIndex = week.distributions[selectedIndex].treasureIndex;
-            week.distributions[selectedIndex].totalSupply--;
             week.winners[msg.sender].treasureTypeClaimed[treasures[selectedTreasureIndex].treasureType] = true;
-            week.winners[msg.sender].claimed++;
-            week.remainingSupply--;
-            claimIndexCount++;
-            treasures[selectedTreasureIndex].claimedToken++;
 
-            transferToken(treasures[selectedTreasureIndex]);
+            unchecked {
+                week.distributions[selectedIndex].totalSupply--;
+                week.winners[msg.sender].claimed++;
+                week.remainingSupply--;
+                treasures[selectedTreasureIndex].claimedToken++;
+            }
 
-            emit TreasureTransferred(
-                _weekNumber,
-                claimIndexCount,
-                msg.sender,
-                treasures[selectedTreasureIndex].collectionAddress,
-                treasures[selectedTreasureIndex].tokenId,
-                treasures[selectedTreasureIndex].contractType,
-                randomNumber
-            );
+            transferToken(_weekNumber, treasures[selectedTreasureIndex]);
         }
     }
 
+    /// @notice Method to claim the next prize
+    /// @dev This method will give different prizes than the first
+    ///      one if there still other prize option available
+    /// @param _weekNumber The week number to claim prize
     function secondaryClaim(uint256 _weekNumber) internal {
         Week storage week = weekInfos[_weekNumber];
-        uint256 remaining;
-        uint256 altRemaining;
+        uint16 remaining;
+        uint16 altRemaining;
 
-        for (uint256 index = 1; index <= week.treasureCount; index++) {
+        for (uint256 index = 1; index <= week.treasureCount; index = _uncheckedInc(index)) {
             uint256 treasureType = treasures[week.distributions[index].treasureIndex].treasureType;
             if (week.winners[msg.sender].treasureTypeClaimed[treasureType]) {
-                altRemaining += week.distributions[index].totalSupply;
+                unchecked {
+                    altRemaining += week.distributions[index].totalSupply;
+                }
             } else {
-                remaining += week.distributions[index].totalSupply;
+                unchecked {
+                    remaining += week.distributions[index].totalSupply;
+                }
             }
         }
         uint256 randomNumber = getRandomNumber();
@@ -162,12 +215,14 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
         uint256 sumOfTotalSupply;
         if (altRemaining == week.remainingSupply) {
             uint256 random = randomNumber - ((randomNumber / altRemaining) * altRemaining) + 1;
-            for (uint256 index = 1; index <= week.treasureCount; index++) {
+            for (uint256 index = 1; index <= week.treasureCount; index = _uncheckedInc(index)) {
                 uint256 treasureType = treasures[week.distributions[index].treasureIndex].treasureType;
                 if (week.distributions[index].totalSupply == 0 || !week.winners[msg.sender].treasureTypeClaimed[treasureType]) {
                     continue;
                 }
-                sumOfTotalSupply += week.distributions[index].totalSupply;
+                unchecked {
+                    sumOfTotalSupply += week.distributions[index].totalSupply;
+                }
                 if (random <= sumOfTotalSupply) {
                     selectedIndex = index;
                     break;
@@ -176,12 +231,14 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
         } else {
             uint256 random = randomNumber - ((randomNumber / remaining) * remaining) + 1;
 
-            for (uint256 index = 1; index <= week.treasureCount; index++) {
+            for (uint256 index = 1; index <= week.treasureCount; index = _uncheckedInc(index)) {
                 uint256 treasureType = treasures[week.distributions[index].treasureIndex].treasureType;
                 if (week.distributions[index].totalSupply == 0 || week.winners[msg.sender].treasureTypeClaimed[treasureType]) {
                     continue;
                 }
-                sumOfTotalSupply += week.distributions[index].totalSupply;
+                unchecked {
+                    sumOfTotalSupply += week.distributions[index].totalSupply;
+                }
                 if (random <= sumOfTotalSupply) {
                     selectedIndex = index;
                     break;
@@ -190,24 +247,22 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
         }
 
         uint256 selectedTreasureIndex = week.distributions[selectedIndex].treasureIndex;
-        week.distributions[selectedIndex].totalSupply--;
         week.winners[msg.sender].treasureTypeClaimed[treasures[selectedTreasureIndex].treasureType] = true;
-        week.winners[msg.sender].claimed++;
-        week.remainingSupply--;
-        treasures[selectedTreasureIndex].claimedToken++;
-        transferToken(treasures[selectedTreasureIndex]);
-        emit TreasureTransferred(
-            _weekNumber,
-            claimIndexCount,
-            msg.sender,
-            treasures[selectedTreasureIndex].collectionAddress,
-            treasures[selectedTreasureIndex].tokenId,
-            treasures[selectedTreasureIndex].contractType,
-            randomNumber
-        );
+        unchecked {
+            week.distributions[selectedIndex].totalSupply--;
+            week.winners[msg.sender].claimed++;
+            week.remainingSupply--;
+            treasures[selectedTreasureIndex].claimedToken++;
+        }
+
+        transferToken(_weekNumber, treasures[selectedTreasureIndex]);
     }
 
-    function transferToken(Treasure memory _treasure) internal {
+    /// @notice Transfer token from vault to the method caller's wallet address
+    /// @dev This method will be used in a public method and user who call the
+    ///      method will get a token from vault
+    /// @param _treasure Prize to transfer
+    function transferToken(uint256 _weekNumber, Treasure memory _treasure) internal {
         if (_treasure.contractType == ERC_1155_TYPE) {
             IERC1155 erc1155Contract = IERC1155(_treasure.collectionAddress);
             erc1155Contract.safeTransferFrom(vaultWalletAddress, msg.sender, _treasure.tokenId, 1, "");
@@ -219,77 +274,92 @@ contract PxTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGuard {
             }
             erc721Contract.transferFrom(vaultWalletAddress, msg.sender, _treasure.tokenIds[_treasure.claimedToken - 1]);
         }
+
+        emit TreasureTransferred(_weekNumber, msg.sender, _treasure.collectionAddress, _treasure.tokenId, _treasure.contractType);
     }
 
+    /// @notice Set prize that will be awarded to the winner of the week
+    /// @dev Only admin can call this method
+    /// @param _weekNumber The week number
+    /// @param _treasureindexes The index of the treasure in 'treasures' mapping variable
+    /// @param _treasureCounts Amount of treasure that will be available to claim during the week
     function setWeeklyTreasureDistribution(
         uint256 _weekNumber,
-        uint256[] memory _treasureindexes,
-        uint256[] memory _counts
-    ) external onlyAdmin(msg.sender) validTreaureDistributionPeriod(_weekNumber) validArrayLength(_treasureindexes.length, _counts.length) {
+        uint8[] memory _treasureindexes,
+        uint16[] memory _treasureCounts,
+        uint8 _sponsoredTripsCount
+    ) external onlyAdmin(msg.sender) validTreaureDistributionPeriod(_weekNumber) validArrayLength(_treasureindexes.length, _treasureCounts.length) {
         Week storage week = weekInfos[_weekNumber];
-
-        for (uint256 index = 0; index < _treasureindexes.length; index++) {
-            if (_treasureindexes[index] == 0 || _treasureindexes[index] > totalTreasures) {
+        week.sponsoredTripsCount = _sponsoredTripsCount;
+        week.availabletripsCount = _sponsoredTripsCount;
+        week.treasureCount = 0;
+        for (uint256 index = 0; index < _treasureindexes.length; index = _uncheckedInc(index)) {
+            if (_treasureindexes[index] == 0 || _treasureindexes[index] > totalTreasureCount) {
                 revert InvalidTreasureIndex();
             }
             week.treasureCount++;
             week.distributions[week.treasureCount].treasureIndex = _treasureindexes[index];
-            week.distributions[week.treasureCount].totalSupply = _counts[index];
-            week.remainingSupply += _counts[index];
+            week.distributions[week.treasureCount].totalSupply = _treasureCounts[index];
+            week.remainingSupply += _treasureCounts[index];
         }
     }
 
-    function setWeeklySponsoredTripDistribution(
-        uint256 _weekNumber,
-        uint256 _count
-    ) external onlyAdmin(msg.sender) validTreaureDistributionPeriod(_weekNumber) {
-        weekInfos[_weekNumber].sponsoredTripsCount = _count;
-        weekInfos[_weekNumber].availabletripsCount = _count;
-    }
-
+    /// @notice Set a list of winner for a particular week
+    /// @param _weekNumber The current week number
+    /// @param _winners List of wallet addresses that have been selected as winners
+    /// @param _treasureCounts Amount of prize that have been awarded to the corresponding winner
     function updateWeeklyWinners(
         uint256 _weekNumber,
         address[] memory _winners,
-        uint8[] memory _counts
-    )
-        external
-        onlyModerator(msg.sender)
-        validWeekNumber(_weekNumber)
-        validArrayLength(_winners.length, _counts.length)
-        validWinnerUpdationPeriod(_weekNumber)
-    {
+        uint8[] memory _treasureCounts
+    ) external onlyModerator(msg.sender) validArrayLength(_winners.length, _treasureCounts.length) validWinnerUpdationPeriod(_weekNumber) {
+        for (uint256 index = 0; index < weekInfos[_weekNumber].tripWinners.length; index++) {
+            address tripWinner = weekInfos[_weekNumber].tripWinners[index];
+            weekInfos[_weekNumber].tripWinnersMap[tripWinner] = false;
+        }
         uint256 randomNumber = getRandomNumber();
-        uint256 index = randomNumber - ((randomNumber / _counts.length) * _counts.length);
+        uint256 randomIndex = randomNumber - ((randomNumber / _treasureCounts.length) * _treasureCounts.length);
         uint256 counter = 0;
-        uint256 tripCount = 0;
-        address[] memory tmp = new address[](weekInfos[_weekNumber].sponsoredTripsCount);
-        while (counter < _counts.length) {
-            if (index == _counts.length) {
-                index = 0;
+        uint256 tripWinnerCount = 0;
+        uint256 treasureCount = 0;
+        address[] memory tmpTripWinners = new address[](weekInfos[_weekNumber].sponsoredTripsCount);
+        while (counter < _treasureCounts.length) {
+            if (randomIndex == _treasureCounts.length) {
+                randomIndex = 0;
             }
-            if (sponsoredTripWinners[_winners[index]] == false && tripCount < weekInfos[_weekNumber].sponsoredTripsCount) {
-                weekInfos[_weekNumber].tripWinnersMap[_winners[index]] = true;
-                tmp[tripCount] = _winners[index];
-                tripCount++;
+            if (
+                !sponsoredTripWinners[_winners[randomIndex]] &&
+                tripWinnerCount < weekInfos[_weekNumber].sponsoredTripsCount &&
+                _treasureCounts[randomIndex] > 0
+            ) {
+                weekInfos[_weekNumber].tripWinnersMap[_winners[randomIndex]] = true;
+                tmpTripWinners[tripWinnerCount] = _winners[randomIndex];
+                tripWinnerCount++;
             }
-            weekInfos[_weekNumber].winners[_winners[index]].claimLimit = _counts[index];
 
-            index++;
-            counter++;
+            weekInfos[_weekNumber].winners[_winners[randomIndex]].claimLimit = _treasureCounts[randomIndex];
+            treasureCount += _treasureCounts[randomIndex];
+            unchecked {
+                randomIndex++;
+                counter++;
+            }
         }
-        if (tripCount < weekInfos[_weekNumber].sponsoredTripsCount) {
-            revert NotEnoughWinnersForSponsoredTrip();
+        if (treasureCount > weekInfos[_weekNumber].remainingSupply + weekInfos[_weekNumber].sponsoredTripsCount) {
+            revert("Invalid Treasure Amount");
         }
-        weekInfos[_weekNumber].tripWinners = tmp;
 
-        emit WeeklyWinnersSet(_weekNumber, tmp);
+        weekInfos[_weekNumber].tripWinners = tmpTripWinners;
+        emit WeeklyWinnersSet(_weekNumber, tmpTripWinners);
     }
 
+    /// @notice Add a list of wallet addresses that has already owned Sponsored Trip
+    /// @param _previousWinners List of addresses that has already owned Sponsored Trip
+    /// @param _flags 'true' means already owned
     function setSponsoredTripWinnerMap(
         address[] memory _previousWinners,
         bool[] memory _flags
     ) external onlyAdmin(msg.sender) validArrayLength(_previousWinners.length, _flags.length) {
-        for (uint256 index = 0; index < _flags.length; index++) {
+        for (uint256 index = 0; index < _flags.length; index = _uncheckedInc(index)) {
             sponsoredTripWinners[_previousWinners[index]] = _flags[index];
         }
     }
