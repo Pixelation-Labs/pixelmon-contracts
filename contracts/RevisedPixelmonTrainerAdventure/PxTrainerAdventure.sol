@@ -342,7 +342,7 @@ contract PxTrainerAdventure is WinnerSelectionManager {
             }
         }
         if (treasureCount > weekInfos[_weekNumber].remainingSupply + weekInfos[_weekNumber].sponsoredTripsCount) {
-            revert();
+            revert("Invalid Treasure Amount");
         }
 
         weekInfos[_weekNumber].tripWinners = tmpTripWinner;

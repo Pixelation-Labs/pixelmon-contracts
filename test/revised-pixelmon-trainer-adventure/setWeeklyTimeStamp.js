@@ -27,7 +27,7 @@ const setWeeklyTimeStamp = async (contract, testUsers, blockTimestamp) => {
             expect(claimPrizePeriod).to.be.equal(blockTimestamp+PrizeUpdationDuration+WinnerUpdationDuration);
             expect(endTimestamp).to.be.equal(blockTimestamp+WeeklyDuration-1);
 
-            [startTimestamp, ticketDrawPeriod, claimPrizePeriod, endTimestamp] = await contract.getWeekInfo(2);
+            [startTimestamp, ticketDrawPeriod, claimPrizePeriod, endTimestamp] = await contract.weekInfos(2);
             let newBlockTimestamp = blockTimestamp+WeeklyDuration;
             expect(startTimestamp).to.be.equal(newBlockTimestamp);
             expect(ticketDrawPeriod).to.be.equal(newBlockTimestamp+PrizeUpdationDuration);
