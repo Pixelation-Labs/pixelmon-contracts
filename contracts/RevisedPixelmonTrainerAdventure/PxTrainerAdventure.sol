@@ -366,9 +366,9 @@ contract PxTrainerAdventure is PxWeekManager, ReentrancyGuard {
         emit WeeklyWinnersSet(_weekNumber, tmpTripWinners);
     }
 
-    /// @notice Add a list of wallet addresses that has already owned Sponsored Trip
-    /// @param _previousWinners List of addresses that has already owned Sponsored Trip
-    /// @param _flags 'true' means already owned
+    /// @notice Add a list of wallet addresses that have won Sponsored Trip
+    /// @param _previousWinners List of addresses that have won Sponsored Trip
+    /// @param _flags 'true' means already won
     function setSponsoredTripWinnerMap(
         address[] memory _previousWinners,
         bool[] memory _flags
