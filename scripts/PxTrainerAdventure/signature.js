@@ -36,11 +36,11 @@ const createSignature = async (weekNumber, claimIndex, walletAddress, signer, co
 
 async function main() {
   
-  const PxTrainerAdventureSignature = await hre.ethers.getContractFactory("PxTrainerAdventureSignature");
-  const pxTrainerAdventureSignature = PxTrainerAdventureSignature.attach('0x1B786B43CEd52078De6E0fdcf2d88E828D89F341');
+  const PxTrainerAdventureSignature = await hre.ethers.getContractFactory("PxChainlinkManager");
+  const pxTrainerAdventureSignature = PxTrainerAdventureSignature.attach('0x6E66d39605F51C988BaDa97d9694d48a88Cc2d54');
   const accounts = await hre.ethers.getSigners();
   const deployer = accounts[0];
-  await createSignature(2, 1, "0xC09Dd8266E298D9554aFc053d2841C286c763Fd9", deployer, pxTrainerAdventureSignature);
+  await createSignature(1, 7, "0xbf8B59b334AC1a8C230952a53BEfb85e7E91f2B8", deployer, pxTrainerAdventureSignature);
 }
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.

@@ -18,9 +18,9 @@ async function main() {
     let _subscriptionId = process.env.SUBSCRIPTION_ID;
     let _keyHash = process.env.KEY_HASH;
     const PxChainlinkManager = await hre.ethers.getContractFactory("PxChainlinkManager");
-    const pxChainlinkManager = await PxChainlinkManager.deploy(_signer,_vrfCoordinator,);
+    const pxChainlinkManager = await PxChainlinkManager.deploy(_signer,_vrfCoordinator,_subscriptionId,_keyHash);
     await pxChainlinkManager.deployed();
-    console.log("pxChainlinkManager deployed to:", pxChainlinkManager.address,_subscriptionId,_keyHash);
+    console.log("pxChainlinkManager deployed to:", pxChainlinkManager.address);
 }
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.

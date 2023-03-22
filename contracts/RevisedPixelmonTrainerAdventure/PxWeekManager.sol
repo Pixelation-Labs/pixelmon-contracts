@@ -278,7 +278,7 @@ contract PxWeekManager is Ownable, PxUtils {
 
     function getWeeklyDistributions(uint256 _weekNumber) external view returns (TreasureDistribution[] memory tmp) {
         TreasureDistribution[] memory distributions = new TreasureDistribution[](weekInfos[_weekNumber].treasureCount);
-        for (uint256 index = 0; index < weekInfos[_weekNumber].treasureCount; index++) {
+        for (uint256 index = 1; index <= weekInfos[_weekNumber].treasureCount; index++) {
             distributions[index] = weekInfos[_weekNumber].distributions[index];
         }
         return distributions;
@@ -286,9 +286,13 @@ contract PxWeekManager is Ownable, PxUtils {
 
     function getTreasures() external view returns (Treasure[] memory tmp) {
         Treasure[] memory allTreasures = new Treasure[](totalTreasureCount);
-        for (uint256 index = 0; index < totalTreasureCount; index++) {
+        for (uint256 index = 1; index <= totalTreasureCount; index++) {
             allTreasures[index] = treasures[index];
         }
         return allTreasures;
+    }
+    
+    function getTreasureById(uint256 _index) external view returns (Treasure memory tmp) {
+        return treasures[_index];
     }
 }
