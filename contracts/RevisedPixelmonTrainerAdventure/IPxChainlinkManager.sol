@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.16;
 
-import "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-
 interface IPxChainlinkManager {
     /// @notice Recovers signer wallet from signature
     /// @dev View function for signature recovering

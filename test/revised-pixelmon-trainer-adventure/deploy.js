@@ -99,7 +99,7 @@ const createSignature = async (weekNumber, claimIndex, walletAddress, signer, co
 describe(`${contractName} contract`, () => {
     let contract;
     let testUsers;
-    let pxTrainerAdventureSignature;
+    let pxChainlinkManager;
     let AttackerSmartContract;
 
     it("Should deploy contract", async () => {
@@ -110,19 +110,21 @@ describe(`${contractName} contract`, () => {
         AttackerSmartContract = await Attacker.deploy();
         await AttackerSmartContract.deployed();
 
-        const PxTrainerAdventureSignature = await hre.ethers.getContractFactory("PxTrainerAdventureSignature");
-        pxTrainerAdventureSignature = await PxTrainerAdventureSignature.deploy(signer.address);
-        await pxTrainerAdventureSignature.deployed();
-
         const MockVRFCoordinator = await hre.ethers.getContractFactory("MockVRFCoordinator");
         const mockVRFCoordinator = await MockVRFCoordinator.deploy();
         await mockVRFCoordinator.deployed();
 
         const _vrfCoordinator = mockVRFCoordinator.address;
-        const _subscriptionId = process.env.SUBSCRIPTION_ID;
-        const _keyHash = process.env.KEY_HASH;
+        const _subscriptionId = 1;
+        const _keyHash = "0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15";
+
+        const PxChainlinkManager = await hre.ethers.getContractFactory("PxChainlinkManager");
+        pxChainlinkManager = await PxChainlinkManager.deploy(signer.address, _vrfCoordinator, _subscriptionId, _keyHash);
+        await pxChainlinkManager.deployed();
+
+        
         const factory = await ethers.getContractFactory(contractName);
-        contract = await factory.deploy(_vrfCoordinator, _subscriptionId, _keyHash, pxTrainerAdventureSignature.address);
+        contract = await factory.deploy(pxChainlinkManager.address);
         expect(await contract.deployed()).to.be.ok;
     });
 
@@ -152,9 +154,9 @@ describe(`${contractName} contract`, () => {
         await setWeeklySponsoredTripDistribution(contract, testUsers, blockTimestamp);
         await updateWeeklyWinners(contract, testUsers);
         await chainLinkMockTest(contract, testUsers);
-        await claimTreasure(contract, testUsers, collection, blockTimestamp, createSignature, pxTrainerAdventureSignature);
-        await testSignature(contract, testUsers, createSignature, pxTrainerAdventureSignature);
-        await setSignatureContractAddress(contract, testUsers, pxTrainerAdventureSignature);
+        await claimTreasure(contract, testUsers, collection, blockTimestamp, createSignature, pxChainlinkManager);
+        await testSignature(contract, testUsers, createSignature, pxChainlinkManager);
+        await setSignatureContractAddress(contract, testUsers, pxChainlinkManager);
         await testNoContractModifier(contract, AttackerSmartContract);
     });
 });
