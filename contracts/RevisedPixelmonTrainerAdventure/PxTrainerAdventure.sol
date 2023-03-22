@@ -3,7 +3,6 @@ pragma solidity ^0.8.16;
 
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./WinnerSelectionManager.sol";
 import "./IPxTrainerAdventureSignature.sol";
 
@@ -20,7 +19,7 @@ error InsufficientToken();
 /// @notice Thrown when the input signature is invalid.
 error InvalidSignature();
 
-contract PxTrainerAdventure is WinnerSelectionManager, ReentrancyGuard {
+contract PxTrainerAdventure is WinnerSelectionManager {
     /// @notice code number for ERC1155 token
     uint8 public constant ERC_1155_TYPE = 1;
     /// @notice code number for ERC721 token
@@ -97,16 +96,11 @@ contract PxTrainerAdventure is WinnerSelectionManager, ReentrancyGuard {
     /// @param _treasure Prize information according to Treasure struct
     function addTreasures(Treasure memory _treasure) external onlyAdmin(msg.sender) {
         totalTreasureCount++;
-        if (_treasure.claimedToken != 0 || (_treasure.contractType != ERC_1155_TYPE && _treasure.contractType != ERC_721_TYPE)) {
-            revert InvalidInput();
-        }
-        if (
-            (_treasure.contractType == ERC_1155_TYPE && _treasure.tokenIds.length > 0) ||
-            (_treasure.contractType == ERC_721_TYPE && _treasure.tokenIds.length == 0)
-        ) {
-            revert InvalidInput();
-        }
         treasures[totalTreasureCount] = _treasure;
+    }
+
+    function updateTreasures(uint256 _index, Treasure memory _treasure) external onlyAdmin(msg.sender) {
+        treasures[_index] = _treasure;
     }
 
     /// @notice Add Sponsored Trips prize to the smart contract
@@ -123,7 +117,7 @@ contract PxTrainerAdventure is WinnerSelectionManager, ReentrancyGuard {
     /// @dev Only winner of the week can call this method
     /// @param _weekNumber The week number to claim prize
     /// @param _signature Signature from signer wallet
-    function claimTreasure(uint256 _weekNumber, bytes calldata _signature) external nonReentrant noContracts {
+    function claimTreasure(uint256 _weekNumber, bytes calldata _signature) external  noContracts {
         if (!(block.timestamp >= weekInfos[_weekNumber].claimStartTimeStamp && block.timestamp <= weekInfos[_weekNumber].endTimeStamp)) {
             revert InvalidClaimingPeriod();
         }
@@ -298,10 +292,13 @@ contract PxTrainerAdventure is WinnerSelectionManager, ReentrancyGuard {
     function setWeeklyTreasureDistribution(
         uint256 _weekNumber,
         uint8[] memory _treasureindexes,
-        uint16[] memory _treasureCounts
+        uint16[] memory _treasureCounts,
+        uint8 _sponsoredTripsCount
     ) external onlyAdmin(msg.sender) validTreaureDistributionPeriod(_weekNumber) validArrayLength(_treasureindexes.length, _treasureCounts.length) {
         Week storage week = weekInfos[_weekNumber];
-
+        week.sponsoredTripsCount = _sponsoredTripsCount;
+        week.availabletripsCount = _sponsoredTripsCount;
+        week.treasureCount = 0;
         for (uint256 index = 0; index < _treasureindexes.length; index = _uncheckedInc(index)) {
             if (_treasureindexes[index] == 0 || _treasureindexes[index] > totalTreasureCount) {
                 revert InvalidTreasureIndex();
@@ -313,16 +310,6 @@ contract PxTrainerAdventure is WinnerSelectionManager, ReentrancyGuard {
         }
     }
 
-    /// @notice Set amount of Sponsored Trips prize that will be awarded to the winner of the week
-    /// @param _weekNumber The week number
-    /// @param _count Amount of Sponsored Trips that will be distributed during the week
-    function setWeeklySponsoredTripDistribution(
-        uint256 _weekNumber,
-        uint8 _count
-    ) external onlyAdmin(msg.sender) validTreaureDistributionPeriod(_weekNumber) {
-        weekInfos[_weekNumber].sponsoredTripsCount = _count;
-        weekInfos[_weekNumber].availabletripsCount = _count;
-    }
 
     /// @notice Set a list of winner for a particular week
     /// @param _weekNumber The current week number
@@ -337,22 +324,28 @@ contract PxTrainerAdventure is WinnerSelectionManager, ReentrancyGuard {
         uint256 randomIndex = randomNumber - ((randomNumber / _treasureCounts.length) * _treasureCounts.length);
         uint256 counter = 0;
         uint256 tripWinnerCount = 0;
+        uint256 treasureCount = 0;
         address[] memory tmpTripWinner = new address[](weekInfos[_weekNumber].sponsoredTripsCount);
         while (counter < _treasureCounts.length) {
             if (randomIndex == _treasureCounts.length) {
                 randomIndex = 0;
             }
-            if (!sponsoredTripWinners[_winners[randomIndex]] && tripWinnerCount < weekInfos[_weekNumber].sponsoredTripsCount) {
+            if (!sponsoredTripWinners[_winners[randomIndex]] && tripWinnerCount < weekInfos[_weekNumber].sponsoredTripsCount && _treasureCounts[randomIndex] > 0) {
                 weekInfos[_weekNumber].tripWinnersMap[_winners[randomIndex]] = true;
                 tmpTripWinner[tripWinnerCount] = _winners[randomIndex];
                 tripWinnerCount++;
             }
 
             weekInfos[_weekNumber].winners[_winners[randomIndex]].claimLimit = _treasureCounts[randomIndex];
+            treasureCount += _treasureCounts[randomIndex];
             unchecked {
                 randomIndex++;
                 counter++;
             }
+        }
+        
+        if(treasureCount > weekInfos[_weekNumber].remainingSupply + weekInfos[_weekNumber].sponsoredTripsCount){
+            revert();
         }
 
         weekInfos[_weekNumber].tripWinners = tmpTripWinner;
@@ -369,5 +362,14 @@ contract PxTrainerAdventure is WinnerSelectionManager, ReentrancyGuard {
         for (uint256 index = 0; index < _flags.length; index = _uncheckedInc(index)) {
             sponsoredTripWinners[_previousWinners[index]] = _flags[index];
         }
+    }
+    function reSetSponsoredTripWinner(
+        uint256 _weekNumber,address _winner
+    ) external onlyAdmin(msg.sender) validWinnerUpdationPeriod(_weekNumber) {
+        weekInfos[_weekNumber].tripWinnersMap[_winner] = false;
+    }
+
+     function getTreasureById(uint256 _index) external view returns (Treasure memory treasure) {
+        return treasures[_index];
     }
 }

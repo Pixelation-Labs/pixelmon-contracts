@@ -8,7 +8,6 @@ pragma solidity ^0.8.16;
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./Utils.sol";
 
 /// @notice Thrown when end timestamp is less than equal to start timestamp
@@ -133,20 +132,10 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2, Utils {
     /// @param tripWinners Winner of Sponsored Trips
     /// @param availabletripsCount How many Sponsored Trips prize that has not been claimed
     struct WeekData {
-        uint256 startTimeStamp;
-        uint256 ticketDrawTimeStamp;
-        uint256 claimStartTimeStamp;
-        uint256 endTimeStamp;
-        uint256 remainingSupply;
-        uint8 treasureCount;
-        uint8 availabletripsCount;
-        uint8 sponsoredTripsCount;
         uint256[] randomNumbers;
         address[] tripWinners;
     }
 
-    /// @notice Total week to claim treasure
-    uint256 public totalWeek;
     /// @notice Collection of information for each week
     mapping(uint256 => Week) public weekInfos;
 
@@ -210,14 +199,7 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2, Utils {
         _;
     }
 
-    /// @notice Check whether the input week number is valid
-    /// @param _weekNumber Number of the week
-    modifier validWeekNumber(uint256 _weekNumber) {
-        if (_weekNumber == 0 || _weekNumber > totalWeek) {
-            revert InvalidWeekNumber();
-        }
-        _;
-    }
+  
 
     /// @notice Emit when calling fulfillRandomWords function
     /// @param weekNumber The week number when the request is sent to Chainlink
@@ -298,43 +280,15 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2, Utils {
         emit ChainlinkRandomNumberSet(requests[_requestId].weekNumber, _randomWords);
     }
 
-    /// @notice Update the week information related with timestamp
-    /// @param _weekNumber Number of the week
-    /// @param _startTimeStamp The start time of the event
-    /// @param _prizeUpdationDuration Duration to update the prize in pool
-    /// @param _winnerUpdationDuration Duration to update winner in merkle root
-    /// @param _weeklyDuration How long the event will be held within a week
-    function updateWeeklyTimeStamp(
-        uint256 _weekNumber,
-        uint256 _startTimeStamp,
-        uint256 _prizeUpdationDuration,
-        uint256 _winnerUpdationDuration,
-        uint256 _weeklyDuration
-    ) external onlyAdmin(msg.sender) validWeekNumber(_weekNumber) {
-        if (_weeklyDuration <= (_prizeUpdationDuration + _winnerUpdationDuration)) {
-            revert InvalidDuration();
-        }
-        if (_weekNumber != 1 && _startTimeStamp <= weekInfos[_weekNumber - 1].endTimeStamp) {
-            revert InvalidTimeStamp();
-        }
-        if (_weekNumber != totalWeek && _startTimeStamp + _weeklyDuration - 1 >= weekInfos[_weekNumber + 1].startTimeStamp) {
-            revert InvalidTimeStamp();
-        }
-
-        weekInfos[_weekNumber].startTimeStamp = _startTimeStamp;
-        weekInfos[_weekNumber].ticketDrawTimeStamp = _startTimeStamp + _prizeUpdationDuration;
-        weekInfos[_weekNumber].claimStartTimeStamp = _startTimeStamp + _prizeUpdationDuration + _winnerUpdationDuration;
-        weekInfos[_weekNumber].endTimeStamp = _startTimeStamp + _weeklyDuration - 1;
-    }
-
+    
     /// @notice Set the week information related with timestamp
-    /// @param _numberOfWeeks How many weeks the event will be held
     /// @param _startTimeStamp The start time of the event
     /// @param _prizeUpdationDuration Duration to update the prize in pool
     /// @param _winnerUpdationDuration Duration to update winner in merkle root
     /// @param _weeklyDuration How long the event will be held within a week
     function setWeeklyTimeStamp(
-        uint256 _numberOfWeeks,
+        uint256 _startWeek,
+        uint256 _endWeek,
         uint256 _startTimeStamp,
         uint256 _prizeUpdationDuration,
         uint256 _winnerUpdationDuration,
@@ -343,12 +297,11 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2, Utils {
         if (_weeklyDuration <= (_prizeUpdationDuration + _winnerUpdationDuration)) {
             revert InvalidDuration();
         }
-        for (uint256 index = 0; index < _numberOfWeeks; index = _uncheckedInc(index)) {
-            totalWeek++;
-            weekInfos[totalWeek].startTimeStamp = _startTimeStamp;
-            weekInfos[totalWeek].ticketDrawTimeStamp = _startTimeStamp + _prizeUpdationDuration;
-            weekInfos[totalWeek].claimStartTimeStamp = _startTimeStamp + _prizeUpdationDuration + _winnerUpdationDuration;
-            weekInfos[totalWeek].endTimeStamp = _startTimeStamp + _weeklyDuration - 1;
+        for (uint256 index = _startWeek; index <= _endWeek; index = _uncheckedInc(index)) {
+            weekInfos[index].startTimeStamp = _startTimeStamp;
+            weekInfos[index].ticketDrawTimeStamp = _startTimeStamp + _prizeUpdationDuration;
+            weekInfos[index].claimStartTimeStamp = _startTimeStamp + _prizeUpdationDuration + _winnerUpdationDuration;
+            weekInfos[index].endTimeStamp = _startTimeStamp + _weeklyDuration - 1;
             _startTimeStamp += _weeklyDuration;
         }
     }
@@ -357,20 +310,17 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2, Utils {
     /// @param _weekNumber The number of the week
     /// @return week Information for specific week
     function getWeekInfo(uint256 _weekNumber) external view returns (WeekData memory week) {
-        week.startTimeStamp = weekInfos[_weekNumber].startTimeStamp;
-        week.ticketDrawTimeStamp = weekInfos[_weekNumber].ticketDrawTimeStamp;
-        week.claimStartTimeStamp = weekInfos[_weekNumber].claimStartTimeStamp;
-        week.endTimeStamp = weekInfos[_weekNumber].endTimeStamp;
-        week.remainingSupply = weekInfos[_weekNumber].remainingSupply;
-        week.treasureCount = weekInfos[_weekNumber].treasureCount;
-        week.sponsoredTripsCount = weekInfos[_weekNumber].sponsoredTripsCount;
         week.randomNumbers = weekInfos[_weekNumber].randomNumbers;
         week.tripWinners = weekInfos[_weekNumber].tripWinners;
-        week.availabletripsCount = weekInfos[_weekNumber].availabletripsCount;
+        
     }
 
     function getWeeklyClaimedCount(uint256 _weekNumber, address _walletAddress) external view returns (uint8 count) {
         return weekInfos[_weekNumber].winners[_walletAddress].claimed;
+    }
+
+    function getWeeklyDistribution(uint256 _weekNumber, uint256 _index) external view returns (TreasureDistribution memory data) {
+        return weekInfos[_weekNumber].distributions[_index];
     }
     
 }
