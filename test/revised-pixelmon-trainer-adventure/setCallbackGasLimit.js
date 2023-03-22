@@ -1,22 +1,22 @@
 const path = require("node:path");
 const {expect} = require("chai");
-const {CallbackGasLimit, NotAdmin} = require("./constant")
+const {CallbackGasLimit, ErrorNotOwner} = require("./constant")
 
 const setCallbackGasLimit = async(contract, testUsers) => {
-    const [_,admin] = testUsers;
+    const [owner, user1] = testUsers;
     describe(path.basename(__filename, ".js"), () => {
         it("Should set callback gas limit", async () => {
             const newLimit = 10000;
             expect(await contract.callbackGasLimit()).to.equal(CallbackGasLimit);
-            await contract.connect(admin).setCallbackGasLimit(newLimit);
+            await contract.connect(owner).setCallbackGasLimit(newLimit);
             expect(await contract.callbackGasLimit()).to.equal(newLimit);
-            await contract.connect(admin).setCallbackGasLimit(CallbackGasLimit);
+            await contract.connect(owner).setCallbackGasLimit(CallbackGasLimit);
             expect(await contract.callbackGasLimit()).to.equal(CallbackGasLimit);
         })
 
-        it("Only admin can set callback gas limit", async () => {
-            await expect(contract.setCallbackGasLimit(10000))
-                .to.be.revertedWithCustomError(contract, NotAdmin)
+        it("Only owner can set callback gas limit", async () => {
+            await expect(contract.connect(user1).setCallbackGasLimit(10000))
+                .to.be.revertedWith(ErrorNotOwner)
         })
     })
 }

@@ -39,9 +39,19 @@ describe("Signature test", function () {
         let testUsers = await ethers.getSigners();
         let signer = testUsers[7];
         let owner = testUsers[0];
-        const PxTrainerAdventureSignature = await hre.ethers.getContractFactory("PxTrainerAdventureSignature");
-        let pxTrainerAdventureSignature = await PxTrainerAdventureSignature.deploy(signer.address);
-        await pxTrainerAdventureSignature.deployed();
+
+
+        const MockVRFCoordinator = await hre.ethers.getContractFactory("MockVRFCoordinator");
+        const mockVRFCoordinator = await MockVRFCoordinator.deploy();
+        await mockVRFCoordinator.deployed();
+
+        const _vrfCoordinator = mockVRFCoordinator.address;
+        const _subscriptionId = 1;
+        const _keyHash = "0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15";
+
+        const PxChainlinkManager = await hre.ethers.getContractFactory("PxChainlinkManager");
+        pxChainlinkManager = await PxChainlinkManager.deploy(signer.address, _vrfCoordinator, _subscriptionId, _keyHash);
+        await pxChainlinkManager.deployed();
 
         let user = testUsers[5];
 
@@ -49,16 +59,16 @@ describe("Signature test", function () {
             let claimIndex = 0;
             let walletAddress = user.address;
 
-            let signature = await createSignature(weekNumber, claimIndex, walletAddress, signer, pxTrainerAdventureSignature);
-            let isValid = await pxTrainerAdventureSignature.recoverSignerFromSignature(weekNumber, claimIndex, walletAddress, signature);
+            let signature = await createSignature(weekNumber, claimIndex, walletAddress, signer, pxChainlinkManager);
+            let isValid = await pxChainlinkManager.recoverSignerFromSignature(weekNumber, claimIndex, walletAddress, signature);
             expect(isValid).to.equal(true);
 
-            isValid = await pxTrainerAdventureSignature.recoverSignerFromSignature(2, claimIndex, walletAddress, signature);
+            isValid = await pxChainlinkManager.recoverSignerFromSignature(2, claimIndex, walletAddress, signature);
             expect(isValid).to.equal(false);
 
-        await expect(pxTrainerAdventureSignature.connect(signer).setSignerAddress(owner.address))
+        await expect(pxChainlinkManager.connect(signer).setSignerAddress(owner.address))
             .to.be.revertedWith(ErrorNotOwner);
-        await pxTrainerAdventureSignature.connect(owner).setSignerAddress(owner.address);
+        await pxChainlinkManager.connect(owner).setSignerAddress(owner.address);
 
     });
 });

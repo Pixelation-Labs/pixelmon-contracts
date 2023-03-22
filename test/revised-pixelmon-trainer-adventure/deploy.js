@@ -136,9 +136,9 @@ describe(`${contractName} contract`, () => {
 
         await setAdminWallet(contract, testUsers);
         await setModeratorWallet(contract, testUsers);
-        await setCallbackGasLimit(contract, testUsers);
-        await setChainLinkKeyHash(contract, testUsers);
-        await setChainlinkSubscriptionId(contract, testUsers);
+        await setCallbackGasLimit(pxChainlinkManager, testUsers);
+        await setChainLinkKeyHash(pxChainlinkManager, testUsers);
+        await setChainlinkSubscriptionId(pxChainlinkManager, testUsers);
         await setWeeklyTimeStamp(contract, testUsers, blockTimestamp);
         await updateWeeklyTimeStamp(contract, testUsers, blockTimestamp);
 

@@ -1,22 +1,22 @@
 const path = require("node:path");
 const {expect} = require("chai");
-const {NotAdmin} = require("./constant")
+const {ErrorNotOwner} = require("./constant")
 
 const setChainlinkSubscriptionId = async(contract, testUsers) => {
-    const [_,admin] = testUsers;
+    const [owner, user1] = testUsers;
     describe(path.basename(__filename, ".js"), () => {
-        it("Should set callback gas limit", async () => {
+        it("Should set chainlink subscription id", async () => {
             const newLimit = 10000;
             const initialId = await contract.chainLinkSubscriptionId();
-            await contract.connect(admin).setChainlinkSubscriptionId(newLimit);
+            await contract.connect(owner).setChainlinkSubscriptionId(newLimit);
             expect(await contract.chainLinkSubscriptionId()).to.equal(newLimit);
-            await contract.connect(admin).setChainlinkSubscriptionId(initialId);
+            await contract.connect(owner).setChainlinkSubscriptionId(initialId);
             expect(await contract.chainLinkSubscriptionId()).to.equal(initialId);
         })
 
         it("Only admin can set Chainlink subscription ID", async () => {
-            await expect(contract.setChainlinkSubscriptionId(10000))
-                .to.be.revertedWithCustomError(contract, NotAdmin)
+            await expect(contract.connect(user1).setChainlinkSubscriptionId(10000))
+                .to.be.revertedWith(ErrorNotOwner)
         })
     })
 }
