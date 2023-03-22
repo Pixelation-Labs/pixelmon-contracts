@@ -153,6 +153,7 @@ describe(`${contractName} contract`, () => {
         await setWeeklyTreasureDistribution(contract, testUsers, blockTimestamp);
         await setWeeklySponsoredTripDistribution(contract, testUsers, blockTimestamp);
         await updateWeeklyWinners(contract, testUsers);
+        await pxChainlinkManager.connect(testUsers[0]).setTrainerAdventureContractAddress(contract.address);
         await chainLinkMockTest(contract, testUsers);
         await claimTreasure(contract, testUsers, collection, blockTimestamp, createSignature, pxChainlinkManager);
         await testSignature(contract, testUsers, createSignature, pxChainlinkManager);
