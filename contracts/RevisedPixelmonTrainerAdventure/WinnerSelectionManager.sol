@@ -4,10 +4,8 @@ pragma solidity ^0.8.16;
 /// @title Pixelmon Trainer Adventure Smart Contract
 /// @author LiquidX
 /// @notice This smart contract provides configuration for the Trainer Adventure event on Pixelmon
-
-import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
-import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./IPxChainlinkManager.sol";
 import "./Utils.sol";
 
 /// @notice Thrown when end timestamp is less than equal to start timestamp
@@ -29,7 +27,7 @@ error NotModerator();
 /// @notice Thrown when length of both arrays are not equal
 error InvalidLength();
 
-contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2, Utils {
+contract WinnerSelectionManager is Ownable, Utils {
     /// @notice Amount of random number requested to Chainlink
     uint32 public constant Random_Number_Count = 3;
 
@@ -120,22 +118,14 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2, Utils {
 
     /// @notice Struct object for week information
     /// @dev This struct is only used as return type for getWeekInfo method
-    /// @param startTimeStamp Start time of the event in a week
-    /// @param ticketDrawTimeStamp Time of the ticket is distributed within a week
-    /// @param claimStartTimeStamp Time where the winner can claim the prize
-    /// @param endTimeStamp End time of the event in a week
-    /// @param remainingSupply The remaining prize supply that hasn't been claimed during
-    ///        the week. This supply is the sum of every prize supply excluding Sponsored Trips
-    /// @param treasureCount How many prize option available
-    /// @param sponsoredTripsCount How many Sponsored Trips available in a week
-    /// @param randomNumbers Chainlink random seed
     /// @param tripWinners Winner of Sponsored Trips
-    /// @param availabletripsCount How many Sponsored Trips prize that has not been claimed
     struct WeekData {
-        uint256[] randomNumbers;
         address[] tripWinners;
+        uint256[] randomNumbers;
     }
 
+    /// @notice Total week to claim treasure
+    uint256 public totalWeek;
     /// @notice Collection of information for each week
     mapping(uint256 => Week) public weekInfos;
 
@@ -144,22 +134,8 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2, Utils {
     /// @notice List of address that has "Moderator" role, 'true' means it has the privilege
     mapping(address => bool) public moderatorWallets;
 
-    /// @notice The maximum gas price to pay for a request to Chainlink in wei.
-    bytes32 public keyHash;
-    /// @notice How many confirmations the Chainlink node should wait before responding
-    uint16 requestConfirmations = 3;
-    /// @notice Chainlink subscription ID that used for sending request
-    uint64 public chainLinkSubscriptionId;
-    /// @notice Gas limit used to call Chainlink
-    uint32 public callbackGasLimit = 400000;
-    /// @notice Address that is able to call Chainlink
-    VRFCoordinatorV2Interface internal COORDINATOR;
-    /// @notice Last request ID to Chainlink
-    uint256 public lastRequestId;
-    /// @notice Collection of chainink request ID
-    uint256[] public requestIds;
-    /// @notice Map of request to Chainlink
-    mapping(uint256 => Request) public requests;
+    /// @dev Signature Contract
+    IPxChainlinkManager public pxChainlinkManagerContract;
 
     /// @notice Check whether address has "Admin" role
     /// @param _walletAddress Valid ethereum address
@@ -199,12 +175,14 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2, Utils {
         _;
     }
 
-  
-
-    /// @notice Emit when calling fulfillRandomWords function
-    /// @param weekNumber The week number when the request is sent to Chainlink
-    /// @param RandomWords The input random words
-    event ChainlinkRandomNumberSet(uint256 weekNumber, uint256[] RandomWords);
+    /// @notice Check whether the input week number is valid
+    /// @param _weekNumber Number of the week
+    modifier validWeekNumber(uint256 _weekNumber) {
+        if (_weekNumber == 0 || _weekNumber > totalWeek) {
+            revert InvalidWeekNumber();
+        }
+        _;
+    }
 
     /// @notice Emit when winners of the week has been selected
     /// @param weekNumber The week number
@@ -212,15 +190,7 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2, Utils {
     event WeeklyWinnersSet(uint256 weekNumber, address[] tripWinners);
 
     /// @notice Constructor function
-    /// @param _vrfCoordinator The address of the Chainlink VRF Coordinator contract
-    /// @param _chainLinkSubscriptionId The Chainlink Subscription ID that is funded to use VRF
-    /// @param _keyHash The gas lane to use, which specifies the maximum gas price to bump to.
-    ///        More https://docs.chain.link/docs/vrf/v2/subscription/supported-networks/#configurations
-    constructor(address _vrfCoordinator, uint64 _chainLinkSubscriptionId, bytes32 _keyHash) VRFConsumerBaseV2(_vrfCoordinator) {
-        COORDINATOR = VRFCoordinatorV2Interface(_vrfCoordinator);
-        keyHash = _keyHash;
-        chainLinkSubscriptionId = _chainLinkSubscriptionId;
-    }
+    constructor() {}
 
     /// @notice Set "Admin" role for specific address, 'true' means it has privilege
     /// @dev Only owner can call this method
@@ -238,57 +208,43 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2, Utils {
         moderatorWallets[_walletAddress] = _flag;
     }
 
-    /// @notice Set callback gas limit parameter when sending request to Chainlink
-    /// @param _callbackGasLimit Amount of expected gas limit
-    function setCallbackGasLimit(uint32 _callbackGasLimit) external onlyAdmin(msg.sender) {
-        callbackGasLimit = _callbackGasLimit;
-    }
-
-    /// @notice Set keyHash parameter when sending request to Chainlink
-    /// @param _keyHash key Hash for chain link
-    function setChainLinkKeyHash(bytes32 _keyHash) external onlyAdmin(msg.sender) {
-        keyHash = _keyHash;
-    }
-
-    /// @notice Set chainLinkSubscriptionId parameter when sending request to Chainlink
-    /// @param _chainLinkSubscriptionId Chainlink subscription Id
-    function setChainlinkSubscriptionId(uint64 _chainLinkSubscriptionId) external onlyAdmin(msg.sender) {
-        chainLinkSubscriptionId = _chainLinkSubscriptionId;
-    }
-
-    /// @notice Generate random number from Chainlink
+    /// @notice Update the week information related with timestamp
     /// @param _weekNumber Number of the week
-    /// @return requestId Chainlink requestId
-    function generateChainLinkRandomNumbers(
-        uint256 _weekNumber
-    ) external onlyModerator(msg.sender) validWinnerUpdationPeriod(_weekNumber) returns (uint256 requestId) {
-        requestId = COORDINATOR.requestRandomWords(keyHash, chainLinkSubscriptionId, requestConfirmations, callbackGasLimit, Random_Number_Count);
-        requests[requestId] = Request({randomWords: new uint256[](0), exists: true, fulfilled: false, weekNumber: _weekNumber});
-        requestIds.push(requestId);
-        lastRequestId = requestId;
-        return requestId;
+    /// @param _startTimeStamp The start time of the event
+    /// @param _prizeUpdationDuration Duration to update the prize in pool
+    /// @param _winnerUpdationDuration Duration to update winner in merkle root
+    /// @param _weeklyDuration How long the event will be held within a week
+    function updateWeeklyTimeStamp(
+        uint256 _weekNumber,
+        uint256 _startTimeStamp,
+        uint256 _prizeUpdationDuration,
+        uint256 _winnerUpdationDuration,
+        uint256 _weeklyDuration
+    ) external onlyAdmin(msg.sender) validWeekNumber(_weekNumber) {
+        if (_weeklyDuration <= (_prizeUpdationDuration + _winnerUpdationDuration)) {
+            revert InvalidDuration();
+        }
+        if (_weekNumber != 1 && _startTimeStamp <= weekInfos[_weekNumber - 1].endTimeStamp) {
+            revert InvalidTimeStamp();
+        }
+        if (_weekNumber != totalWeek && _startTimeStamp + _weeklyDuration - 1 >= weekInfos[_weekNumber + 1].startTimeStamp) {
+            revert InvalidTimeStamp();
+        }
+
+        weekInfos[_weekNumber].startTimeStamp = _startTimeStamp;
+        weekInfos[_weekNumber].ticketDrawTimeStamp = _startTimeStamp + _prizeUpdationDuration;
+        weekInfos[_weekNumber].claimStartTimeStamp = _startTimeStamp + _prizeUpdationDuration + _winnerUpdationDuration;
+        weekInfos[_weekNumber].endTimeStamp = _startTimeStamp + _weeklyDuration - 1;
     }
 
-    /// @notice Store random words in a contract
-    /// @param _requestId Chainlink request ID
-    /// @param _randomWords A collection of random word
-    function fulfillRandomWords(uint256 _requestId, uint256[] memory _randomWords) internal override {
-        require(requests[_requestId].exists, "request not found");
-        requests[_requestId].fulfilled = true;
-        requests[_requestId].randomWords = _randomWords;
-        weekInfos[requests[_requestId].weekNumber].randomNumbers = _randomWords;
-        emit ChainlinkRandomNumberSet(requests[_requestId].weekNumber, _randomWords);
-    }
-
-    
     /// @notice Set the week information related with timestamp
+    /// @param _numberOfWeeks How many weeks the event will be held
     /// @param _startTimeStamp The start time of the event
     /// @param _prizeUpdationDuration Duration to update the prize in pool
     /// @param _winnerUpdationDuration Duration to update winner in merkle root
     /// @param _weeklyDuration How long the event will be held within a week
     function setWeeklyTimeStamp(
-        uint256 _startWeek,
-        uint256 _endWeek,
+        uint256 _numberOfWeeks,
         uint256 _startTimeStamp,
         uint256 _prizeUpdationDuration,
         uint256 _winnerUpdationDuration,
@@ -297,22 +253,28 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2, Utils {
         if (_weeklyDuration <= (_prizeUpdationDuration + _winnerUpdationDuration)) {
             revert InvalidDuration();
         }
-        for (uint256 index = _startWeek; index <= _endWeek; index = _uncheckedInc(index)) {
-            weekInfos[index].startTimeStamp = _startTimeStamp;
-            weekInfos[index].ticketDrawTimeStamp = _startTimeStamp + _prizeUpdationDuration;
-            weekInfos[index].claimStartTimeStamp = _startTimeStamp + _prizeUpdationDuration + _winnerUpdationDuration;
-            weekInfos[index].endTimeStamp = _startTimeStamp + _weeklyDuration - 1;
+        for (uint256 index = 0; index < _numberOfWeeks; index = _uncheckedInc(index)) {
+            totalWeek++;
+            weekInfos[totalWeek].startTimeStamp = _startTimeStamp;
+            weekInfos[totalWeek].ticketDrawTimeStamp = _startTimeStamp + _prizeUpdationDuration;
+            weekInfos[totalWeek].claimStartTimeStamp = _startTimeStamp + _prizeUpdationDuration + _winnerUpdationDuration;
+            weekInfos[totalWeek].endTimeStamp = _startTimeStamp + _weeklyDuration - 1;
             _startTimeStamp += _weeklyDuration;
         }
+    }
+
+    // @notice Generate random number from Chainlink
+    /// @param _weekNumber Number of the week
+    function generateChainLinkRandomNumbers(uint256 _weekNumber) external onlyModerator(msg.sender) validWinnerUpdationPeriod(_weekNumber) {
+        pxChainlinkManagerContract.generateChainLinkRandomNumbers(_weekNumber);
     }
 
     /// @notice Get week informations for specific week
     /// @param _weekNumber The number of the week
     /// @return week Information for specific week
     function getWeekInfo(uint256 _weekNumber) external view returns (WeekData memory week) {
-        week.randomNumbers = weekInfos[_weekNumber].randomNumbers;
         week.tripWinners = weekInfos[_weekNumber].tripWinners;
-        
+        week.randomNumbers = pxChainlinkManagerContract.getWeeklyRandomNumbers(_weekNumber);
     }
 
     function getWeeklyClaimedCount(uint256 _weekNumber, address _walletAddress) external view returns (uint8 count) {
@@ -322,5 +284,4 @@ contract WinnerSelectionManager is Ownable, VRFConsumerBaseV2, Utils {
     function getWeeklyDistribution(uint256 _weekNumber, uint256 _index) external view returns (TreasureDistribution memory data) {
         return weekInfos[_weekNumber].distributions[_index];
     }
-    
 }

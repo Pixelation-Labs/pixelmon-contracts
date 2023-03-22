@@ -4,7 +4,7 @@ pragma solidity ^0.8.16;
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./WinnerSelectionManager.sol";
-import "./IPxTrainerAdventureSignature.sol";
+import "./IPxChainlinkManager.sol";
 
 /// @notice Thrown when all prizes are already claimed
 error AlreadyClaimed();
@@ -24,9 +24,6 @@ contract PxTrainerAdventure is WinnerSelectionManager {
     uint8 public constant ERC_1155_TYPE = 1;
     /// @notice code number for ERC721 token
     uint8 public constant ERC_721_TYPE = 2;
-
-    /// @dev Signature Contract
-    IPxTrainerAdventureSignature public signatureContract;
 
     /// @notice Wallet address that keeps all prizes
     address public vaultWalletAddress;
@@ -67,22 +64,14 @@ contract PxTrainerAdventure is WinnerSelectionManager {
     /// @notice The contract constructor
     /// @dev The constructor parameters only used as input
     ///      from WinnerSelectionManager contract
-    /// @param _vrfCoordinator The address of the Chainlink VRF Coordinator contract
-    /// @param _chainLinkSubscriptionId The Chainlink Subscription ID that is funded to use VRF
-    /// @param _keyHash The gas lane to use, which specifies the maximum gas price to bump to.
     ///        More https://docs.chain.link/docs/vrf/v2/subscription/supported-networks/#configurations
-    /// @param _pxSignatureAddress Signature contract address
-    constructor(
-        address _vrfCoordinator,
-        uint64 _chainLinkSubscriptionId,
-        bytes32 _keyHash,
-        address _pxSignatureAddress
-    ) WinnerSelectionManager(_vrfCoordinator, _chainLinkSubscriptionId, _keyHash) {
-        signatureContract = IPxTrainerAdventureSignature(_pxSignatureAddress);
+    /// @param _pxChainlinkContractAddress Signature contract address
+    constructor(address _pxChainlinkContractAddress) WinnerSelectionManager() {
+        pxChainlinkManagerContract = IPxChainlinkManager(_pxChainlinkContractAddress);
     }
 
-    function setSignatureContractAddress(address _pxSignatureAddress) external onlyOwner {
-        signatureContract = IPxTrainerAdventureSignature(_pxSignatureAddress);
+    function setpxChainlinkManagerContractAddress(address _pxChainlinkContractAddress) external onlyOwner {
+        pxChainlinkManagerContract = IPxChainlinkManager(_pxChainlinkContractAddress);
     }
 
     /// @notice Set address to become vault
@@ -91,11 +80,17 @@ contract PxTrainerAdventure is WinnerSelectionManager {
         vaultWalletAddress = _walletAddress;
     }
 
-    /// @notice Add prize to the smart contract
-    /// @dev Only admin can call this method
-    /// @param _treasure Prize information according to Treasure struct
     function addTreasures(Treasure memory _treasure) external onlyAdmin(msg.sender) {
         totalTreasureCount++;
+        if (_treasure.claimedToken != 0 || (_treasure.contractType != ERC_1155_TYPE && _treasure.contractType != ERC_721_TYPE)) {
+            revert InvalidInput();
+        }
+        if (
+            (_treasure.contractType == ERC_1155_TYPE && _treasure.tokenIds.length > 0) ||
+            (_treasure.contractType == ERC_721_TYPE && _treasure.tokenIds.length == 0)
+        ) {
+            revert InvalidInput();
+        }
         treasures[totalTreasureCount] = _treasure;
     }
 
@@ -117,11 +112,11 @@ contract PxTrainerAdventure is WinnerSelectionManager {
     /// @dev Only winner of the week can call this method
     /// @param _weekNumber The week number to claim prize
     /// @param _signature Signature from signer wallet
-    function claimTreasure(uint256 _weekNumber, bytes calldata _signature) external  noContracts {
+    function claimTreasure(uint256 _weekNumber, bytes calldata _signature) external noContracts {
         if (!(block.timestamp >= weekInfos[_weekNumber].claimStartTimeStamp && block.timestamp <= weekInfos[_weekNumber].endTimeStamp)) {
             revert InvalidClaimingPeriod();
         }
-        bool isValidSigner = signatureContract.recoverSignerFromSignature(
+        bool isValidSigner = pxChainlinkManagerContract.recoverSignerFromSignature(
             _weekNumber,
             weekInfos[_weekNumber].winners[msg.sender].claimed,
             msg.sender,
@@ -310,7 +305,6 @@ contract PxTrainerAdventure is WinnerSelectionManager {
         }
     }
 
-
     /// @notice Set a list of winner for a particular week
     /// @param _weekNumber The current week number
     /// @param _winners List of wallet addresses that have been selected as winners
@@ -330,7 +324,11 @@ contract PxTrainerAdventure is WinnerSelectionManager {
             if (randomIndex == _treasureCounts.length) {
                 randomIndex = 0;
             }
-            if (!sponsoredTripWinners[_winners[randomIndex]] && tripWinnerCount < weekInfos[_weekNumber].sponsoredTripsCount && _treasureCounts[randomIndex] > 0) {
+            if (
+                !sponsoredTripWinners[_winners[randomIndex]] &&
+                tripWinnerCount < weekInfos[_weekNumber].sponsoredTripsCount &&
+                _treasureCounts[randomIndex] > 0
+            ) {
                 weekInfos[_weekNumber].tripWinnersMap[_winners[randomIndex]] = true;
                 tmpTripWinner[tripWinnerCount] = _winners[randomIndex];
                 tripWinnerCount++;
@@ -343,8 +341,7 @@ contract PxTrainerAdventure is WinnerSelectionManager {
                 counter++;
             }
         }
-        
-        if(treasureCount > weekInfos[_weekNumber].remainingSupply + weekInfos[_weekNumber].sponsoredTripsCount){
+        if (treasureCount > weekInfos[_weekNumber].remainingSupply + weekInfos[_weekNumber].sponsoredTripsCount) {
             revert();
         }
 
@@ -363,13 +360,12 @@ contract PxTrainerAdventure is WinnerSelectionManager {
             sponsoredTripWinners[_previousWinners[index]] = _flags[index];
         }
     }
-    function reSetSponsoredTripWinner(
-        uint256 _weekNumber,address _winner
-    ) external onlyAdmin(msg.sender) validWinnerUpdationPeriod(_weekNumber) {
+
+    function reSetSponsoredTripWinner(uint256 _weekNumber, address _winner) external onlyAdmin(msg.sender) validWinnerUpdationPeriod(_weekNumber) {
         weekInfos[_weekNumber].tripWinnersMap[_winner] = false;
     }
 
-     function getTreasureById(uint256 _index) external view returns (Treasure memory treasure) {
+    function getTreasureById(uint256 _index) external view returns (Treasure memory treasure) {
         return treasures[_index];
     }
 }

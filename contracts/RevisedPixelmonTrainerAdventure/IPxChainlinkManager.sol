@@ -4,8 +4,7 @@ pragma solidity ^0.8.16;
 import "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-interface IPxTrainerAdventureSignature {
-
+interface IPxChainlinkManager {
     /// @notice Recovers signer wallet from signature
     /// @dev View function for signature recovering
     /// @param weekNumber Week number for claim
@@ -18,4 +17,8 @@ interface IPxTrainerAdventureSignature {
         address walletAddress,
         bytes calldata signature
     ) external returns (bool);
+
+    function generateChainLinkRandomNumbers(uint256 _weekNumber) external returns (uint256 requestId);
+
+    function getWeeklyRandomNumbers(uint256 _weekNumber) external view returns (uint256[] memory randomNumbers);
 }
