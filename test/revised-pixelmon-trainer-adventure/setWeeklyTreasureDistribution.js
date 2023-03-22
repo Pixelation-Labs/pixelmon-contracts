@@ -13,16 +13,18 @@ const {
 const setWeeklyTreasureDistribution = async(contract, testUsers, blockTimestamp) => {
     describe(path.basename(__filename, ".js"), () => {
         const [_,admin] = testUsers;
+        const sponsorTripsCount = 2;
 
         it("Should set weekly distribution", async() => {
             let weekNumber = 1;
             const treasureIndex = [1,2];
-            const count = [1,2]
+            const count = [2,2];
 
             await contract.connect(admin).setWeeklyTreasureDistribution(
                 weekNumber,
                 treasureIndex,
-                count
+                count,
+                sponsorTripsCount
             )
 
             const weekData = await contract.weekInfos(weekNumber);
@@ -32,8 +34,8 @@ const setWeeklyTreasureDistribution = async(contract, testUsers, blockTimestamp)
             expect(Number(weekData.endTimeStamp)).to.be.equal(blockTimestamp+WeeklyDuration-1);
             expect(Number(weekData.remainingSupply)).to.be.equal(count.reduce((accumulator,currentValue) => accumulator+currentValue));
             expect(Number(weekData.treasureCount)).to.be.equal(treasureIndex.length);
-            expect(Number(weekData.sponsoredTripsCount)).to.be.equal(0);
-            expect(Number(weekData.availabletripsCount)).to.be.equal(0);
+            expect(Number(weekData.sponsoredTripsCount)).to.be.equal(sponsorTripsCount);
+            expect(Number(weekData.availabletripsCount)).to.be.equal(sponsorTripsCount);
         });
 
         it("Should not set weekly prize before its period", async() => {
@@ -44,7 +46,8 @@ const setWeeklyTreasureDistribution = async(contract, testUsers, blockTimestamp)
             await expect(contract.connect(admin).setWeeklyTreasureDistribution(
                 weekNumber,
                 treasureIndex,
-                count
+                count,
+                sponsorTripsCount
             )).to.be.revertedWithCustomError(contract, InvalidUpdationPeriod);
         });
 
@@ -55,7 +58,8 @@ const setWeeklyTreasureDistribution = async(contract, testUsers, blockTimestamp)
             await expect(contract.connect(admin).setWeeklyTreasureDistribution(
                 weekNumber,
                 treasureIndex,
-                count
+                count,
+                sponsorTripsCount
             )).to.be.revertedWithCustomError(contract, InvalidLength);
 
             treasureIndex = [2];
@@ -63,7 +67,8 @@ const setWeeklyTreasureDistribution = async(contract, testUsers, blockTimestamp)
             await expect(contract.connect(admin).setWeeklyTreasureDistribution(
                 weekNumber,
                 treasureIndex,
-                count
+                count,
+                sponsorTripsCount
             )).to.be.revertedWithCustomError(contract, InvalidLength);
         })
 
@@ -74,14 +79,16 @@ const setWeeklyTreasureDistribution = async(contract, testUsers, blockTimestamp)
             await expect(contract.connect(admin).setWeeklyTreasureDistribution(
                 weekNumber,
                 treasureIndex,
-                count
+                count,
+                sponsorTripsCount
             )).to.be.revertedWithCustomError(contract, InvalidTreasureIndex);
 
             treasureIndex = [200]
             await expect(contract.connect(admin).setWeeklyTreasureDistribution(
                 weekNumber,
                 treasureIndex,
-                count
+                count,
+                sponsorTripsCount
             )).to.be.revertedWithCustomError(contract, InvalidTreasureIndex);
         })
 
@@ -92,7 +99,8 @@ const setWeeklyTreasureDistribution = async(contract, testUsers, blockTimestamp)
             await expect(contract.setWeeklyTreasureDistribution(
                 weekNumber,
                 treasureIndex,
-                count
+                count,
+                sponsorTripsCount
             )).to.be.revertedWithCustomError(contract, NotAdmin);
 
         })

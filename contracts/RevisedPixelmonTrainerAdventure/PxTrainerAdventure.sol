@@ -345,7 +345,7 @@ contract PxTrainerAdventure is WinnerSelectionManager, ReentrancyGuard {
             }
         }
         if (treasureCount > weekInfos[_weekNumber].remainingSupply + weekInfos[_weekNumber].sponsoredTripsCount) {
-            revert();
+            revert("Invalid Treasure Amount");
         }
 
         weekInfos[_weekNumber].tripWinners = tmpTripWinners;
