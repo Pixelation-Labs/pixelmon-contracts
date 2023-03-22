@@ -5,15 +5,15 @@ const {ErrorNotOwner} = require("./constant")
 const setSignatureContractAddress = async (contract, testUsers, pxTrainerAdventureSignature) => {
     const [owner, admin] = testUsers;
     describe(path.basename(__filename, ".js"), () => {
-        it("Set signature contract address", async () => {
-            await contract.setSignatureContractAddress(contract.address);
-            expect(await contract.signatureContract()).to.be.equal(contract.address);
-            await contract.setSignatureContractAddress(pxTrainerAdventureSignature.address);
-            expect(await contract.signatureContract()).to.be.equal(pxTrainerAdventureSignature.address);
+        it("Set setpxChainlinkManagerContractAddress", async () => {
+            await contract.setpxChainlinkManagerContractAddress(contract.address);
+            expect(await contract.pxChainlinkManagerContract()).to.be.equal(contract.address);
+            await contract.setpxChainlinkManagerContractAddress(pxTrainerAdventureSignature.address);
+            expect(await contract.pxChainlinkManagerContract()).to.be.equal(pxTrainerAdventureSignature.address);
         });
 
-        it("Only owner can set signature contract address", async () => {
-            await expect(contract.connect(admin).setSignatureContractAddress(contract.address))
+        it("Only owner can setpxChainlinkManagerContractAddress", async () => {
+            await expect(contract.connect(admin).setpxChainlinkManagerContractAddress(contract.address))
                 .to.be.revertedWith(ErrorNotOwner);
         });
     });

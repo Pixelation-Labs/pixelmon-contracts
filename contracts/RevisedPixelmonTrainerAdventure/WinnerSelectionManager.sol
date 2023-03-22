@@ -28,20 +28,6 @@ error NotModerator();
 error InvalidLength();
 
 contract WinnerSelectionManager is Ownable, Utils {
-    /// @notice Amount of random number requested to Chainlink
-    uint32 public constant Random_Number_Count = 3;
-
-    /// @notice Struct object to send request to Chainlink
-    /// @param fulfilled Whether the random words has been set or not
-    /// @param exists Whether the request has been sent or not
-    /// @param weekNumber Draw week number
-    /// @param randomWords Random words from Chainlink
-    struct Request {
-        bool fulfilled;
-        bool exists;
-        uint256 weekNumber;
-        uint256[] randomWords;
-    }
 
     /// @notice Struct object for winner information
     /// @param claimLimit Maximum prize that can be claimed by winner
