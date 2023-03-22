@@ -5,6 +5,7 @@ pragma solidity ^0.8.16;
 /// @author LiquidX
 /// @notice This smart contract provides configuration for the Trainer Adventure event on Pixelmon
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./IPxChainlinkManager.sol";
 import "./Utils.sol";
 
@@ -28,7 +29,7 @@ error NotModerator();
 error InvalidLength();
 
 contract WinnerSelectionManager is Ownable, Utils {
-
+    
     /// @notice Struct object for winner information
     /// @param claimLimit Maximum prize that can be claimed by winner
     /// @param claimed Number of prize that has been claimed by winner
@@ -95,7 +96,6 @@ contract WinnerSelectionManager is Ownable, Utils {
         uint8 treasureCount;
         uint8 sponsoredTripsCount;
         uint8 availabletripsCount;
-        uint256[] randomNumbers;
         address[] tripWinners;
         mapping(address => bool) tripWinnersMap;
         mapping(uint256 => TreasureDistribution) distributions;
@@ -109,6 +109,15 @@ contract WinnerSelectionManager is Ownable, Utils {
         address[] tripWinners;
         uint256[] randomNumbers;
     }
+
+    /// @notice Total prize options
+    uint256 public totalTreasureCount;
+
+    /// @notice Variable to store prize information such as the collection
+    ///         address, token ID, amount, and token type
+    /// @custom:key prize ID
+    /// @custom:value Prize information
+    mapping(uint256 => Treasure) public treasures;
 
     /// @notice Total week to claim treasure
     uint256 public totalWeek;
@@ -267,7 +276,19 @@ contract WinnerSelectionManager is Ownable, Utils {
         return weekInfos[_weekNumber].winners[_walletAddress].claimed;
     }
 
-    function getWeeklyDistribution(uint256 _weekNumber, uint256 _index) external view returns (TreasureDistribution memory data) {
-        return weekInfos[_weekNumber].distributions[_index];
+    function getWeeklyDistributions(uint256 _weekNumber) external view returns (TreasureDistribution[] memory tmp) {
+        TreasureDistribution[] memory distributions = new TreasureDistribution[](weekInfos[_weekNumber].treasureCount);
+        for (uint256 index = 0; index < weekInfos[_weekNumber].treasureCount; index++) {
+            distributions[index] = weekInfos[_weekNumber].distributions[index];
+        }
+        return distributions;
+    }
+
+    function getTreasures() external view returns (Treasure[] memory tmp) {
+        Treasure[] memory allTreasures = new Treasure[](totalTreasureCount);
+        for (uint256 index = 0; index < totalTreasureCount; index++) {
+            allTreasures[index] = treasures[index];
+        }
+        return allTreasures;
     }
 }
