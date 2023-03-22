@@ -83,7 +83,7 @@ const claimTreasure = async (contract, testUsers, collection, blockTimestamp, cr
 
             winner = winners[1];
             signature = await createSignature(weekNumber, 1, winner.address, signer, pxTrainerAdventureSignature);
-            await expect(contract.connect(winner).claimTreasure(weekNumber, signature)).to.revertedWithPanic(0x12);
+            await expect(contract.connect(winner).claimTreasure(weekNumber, signature)).to.emit(contract, TreasureTransferred);
         });
 
         it("Should not claim treasure before its period", async () => {
@@ -104,13 +104,10 @@ const claimTreasure = async (contract, testUsers, collection, blockTimestamp, cr
             await contract.connect(admin).setWeeklyTreasureDistribution(
                 weekNumber,
                 treasureIndex,
-                count
-            );
-
-            await contract.connect(admin).setWeeklySponsoredTripDistribution(
-                weekNumber,
+                count,
                 2
             );
+
 
             time.increase(PrizeUpdationDuration);
 
