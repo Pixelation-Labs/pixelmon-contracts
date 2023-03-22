@@ -47,6 +47,12 @@ const updateWeeklyWinners = async(contract, testUsers) => {
                 prizeAmount
             )).to.emit(contract, WeeklyWinnersSet);
 
+            await expect(contract.connect(moderator).updateWeeklyWinners(
+                weekNumber,
+                winners,
+                prizeAmount
+            )).to.emit(contract, WeeklyWinnersSet);
+
             const weekData = await contract.getWeekInfo(weekNumber);
             for(let winner of weekData.tripWinners) {
                 // Should return false since the selected winner
