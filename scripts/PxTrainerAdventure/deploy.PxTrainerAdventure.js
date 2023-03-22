@@ -16,12 +16,9 @@ async function main() {
 
     // We get the contract to deploy
 
-    let _vrfCoordinator = process.env.VRF_COORDINATOR;
-    let _subscriptionId = process.env.SUBSCRIPTION_ID;
-    let _keyHash = process.env.KEY_HASH;
     let _pxSignatureAddress = process.env.PX_SIGNATURE_CONTRACT_ADDRESS;
     const PxTrainerAdventure = await hre.ethers.getContractFactory("PxTrainerAdventure");
-    const pxTrainerAdventure = await PxTrainerAdventure.deploy(_vrfCoordinator, _subscriptionId, _keyHash,_pxSignatureAddress);
+    const pxTrainerAdventure = await PxTrainerAdventure.deploy(_pxSignatureAddress);
 
     await pxTrainerAdventure.deployed();
 
