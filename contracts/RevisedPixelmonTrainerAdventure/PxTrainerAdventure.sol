@@ -121,7 +121,7 @@ contract PxTrainerAdventure is PxWeekManager, ReentrancyGuard {
         sponsoredTrip = _treasure;
     }
 
-    /// @notice claim function fo the winner
+    /// @notice claim function for the winner
     /// @dev Only winner of the week can call this method
     /// @param _weekNumber The week number to claim treasure
     /// @param _signature Signature from signer wallet
@@ -129,7 +129,7 @@ contract PxTrainerAdventure is PxWeekManager, ReentrancyGuard {
         if (!(block.timestamp >= weekInfos[_weekNumber].claimStartTimeStamp && block.timestamp <= weekInfos[_weekNumber].endTimeStamp)) {
             revert InvalidClaimingPeriod();
         }
-        bool isValidSigner = pxChainlinkManagerContract.recoverSignerFromSignature(
+        bool isValidSigner = pxChainlinkManagerContract.isSignerVerifiedFromSignature(
             _weekNumber,
             weekInfos[_weekNumber].winners[msg.sender].claimed,
             msg.sender,
@@ -292,7 +292,7 @@ contract PxTrainerAdventure is PxWeekManager, ReentrancyGuard {
         emit TreasureTransferred(_weekNumber, msg.sender, _treasure.collectionAddress, _treasure.tokenId, _treasure.contractType);
     }
 
-    /// @notice Set treasure treasure distributions for a week
+    /// @notice Set treasure distributions for a week
     /// @dev Only admin can call this method
     /// @param _weekNumber The week number
     /// @param _treasureindexes The index of the treasure in 'treasures' mapping variable

@@ -15,10 +15,10 @@ const testSignature = async (contract, testUsers, createSignature, pxTrainerAdve
             let walletAddress = user.address;
 
             let signature = await createSignature(weekNumber, claimIndex, walletAddress, signer, pxTrainerAdventureSignature);
-            let isValid = await pxTrainerAdventureSignature.recoverSignerFromSignature(weekNumber, claimIndex, walletAddress, signature);
+            let isValid = await pxTrainerAdventureSignature.isSignerVerifiedFromSignature(weekNumber, claimIndex, walletAddress, signature);
             expect(isValid).to.equal(true);
 
-            isValid = await pxTrainerAdventureSignature.recoverSignerFromSignature(2, claimIndex, walletAddress, signature);
+            isValid = await pxTrainerAdventureSignature.isSignerVerifiedFromSignature(2, claimIndex, walletAddress, signature);
             expect(isValid).to.equal(false);
         });
 
