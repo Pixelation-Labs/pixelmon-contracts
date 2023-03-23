@@ -35,12 +35,16 @@ contract PxChainlinkManager is EIP712, Ownable, VRFConsumerBaseV2 {
         uint256[] randomWords;
     }
 
+    /// @notice Struct object to save weekly chainlink random numbers 
+    /// @param randomNumbers weekly chainlink random numbers
     struct WeeklyRandomNumber {
         uint256[] randomNumbers;
     }
 
+    /// @notice Map of weekly chainlink random numbers
     mapping(uint256 => WeeklyRandomNumber) weeklyRandomNumbers;
 
+    /// @notice address of trainer adventure smart contract
     address public trainerAdventureContractAddress;
 
     // @notice The maximum gas price to pay for a request to Chainlink in wei.
@@ -126,8 +130,10 @@ contract PxChainlinkManager is EIP712, Ownable, VRFConsumerBaseV2 {
         callbackGasLimit = _callbackGasLimit;
     }
 
-    function setTrainerAdventureContractAddress(address trainerAdventure) external onlyOwner {
-        trainerAdventureContractAddress = trainerAdventure;
+    /// @notice Set trainer adventure contract address
+    /// @param _trainerAdventure address of trainer adventure contract address
+    function setTrainerAdventureContractAddress(address _trainerAdventure) external onlyOwner {
+        trainerAdventureContractAddress = _trainerAdventure;
     }
 
     /// @notice Set keyHash parameter when sending request to Chainlink
@@ -156,6 +162,9 @@ contract PxChainlinkManager is EIP712, Ownable, VRFConsumerBaseV2 {
         return requestId;
     }
 
+    /// @notice Store random words in a contract
+    /// @param _requestId Chainlink request ID
+    /// @param _randomWords A collection of random word
     function fulfillRandomWords(uint256 _requestId, uint256[] memory _randomWords) internal override {
         require(requests[_requestId].exists, "request not found");
         requests[_requestId].fulfilled = true;
@@ -164,6 +173,8 @@ contract PxChainlinkManager is EIP712, Ownable, VRFConsumerBaseV2 {
         emit ChainlinkRandomNumberSet(requests[_requestId].weekNumber, _randomWords);
     }
 
+    /// @notice Get weekly random numbers for specific week
+    /// @param _weekNumber The number of the week
     function getWeeklyRandomNumbers(uint256 _weekNumber) external view returns (uint256[] memory randomNumbers) {
         return weeklyRandomNumbers[_weekNumber].randomNumbers;
     }
