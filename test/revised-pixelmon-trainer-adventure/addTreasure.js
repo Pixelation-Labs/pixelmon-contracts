@@ -121,8 +121,7 @@ const addTreasure = async (contract, testUsers, collection) => {
             expect(Number(updatedTreasure.tokenId)).to.equal(treasure.tokenId);
 
             let allTreasure = await contract.getTreasures();
-            console.log(allTreasure)
-            expect(allTreasure.length).to.equal(Number(totalTreasure) + 1);
+            expect(allTreasure.length).to.equal(Number(totalTreasure));
         });
 
         it("Only admin can add treasure", async () => {
