@@ -149,6 +149,22 @@ const claimTreasure = async (contract, testUsers, collection, blockTimestamp, cr
             expect(Number(await collection.trainer.balanceOf(admin.address))).to.be.equal(0);
             signature = await createSignature(weekNumber, 2, winners[2].address, signer, pxTrainerAdventureSignature);
             await expect(contract.connect(winners[2]).claimTreasure(weekNumber, signature)).to.be.revertedWithCustomError(contract, InsufficientToken);
+
+            await collection.trainer.connect(admin).mintRangeOne(admin.address, 1);
+            expect(Number(await collection.trainer.balanceOf(admin.address))).to.be.equal(1);
+
+            const treasure = {
+                collectionAddress: collection.trainer.address,
+                tokenId: 0,
+                tokenIds: [5],
+                claimedToken: 0,
+                contractType: await contract.ERC_721_TYPE(),
+                treasureType: 2
+            };
+
+            await contract.connect(admin).updateTreasure(2, treasure)
+            await contract.connect(winners[2]).claimTreasure(weekNumber, signature);
+            expect(Number(await collection.trainer.balanceOf(admin.address))).to.be.equal(0);
         });
 
     });
