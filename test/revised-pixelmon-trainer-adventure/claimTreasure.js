@@ -98,7 +98,7 @@ const claimTreasure = async (contract, testUsers, collection, blockTimestamp, cr
         it("Should claim on second week", async () => {
             let weekNumber = 2;
             const treasureIndex = [1, 2];
-            const prizeAmount = Array(winners.length).fill(2);
+            const prizeAmount = [2,2,3];
             const count = [0, 6];
 
             await contract.connect(admin).setWeeklyTreasureDistribution(
@@ -135,13 +135,19 @@ const claimTreasure = async (contract, testUsers, collection, blockTimestamp, cr
                 await contract.connect(winner).claimTreasure(weekNumber, signature);
             }
 
+            expect(Number(await collection.trainer.balanceOf(admin.address))).to.be.equal(2);
             signature = await createSignature(weekNumber, 0, winners[2].address, signer, pxTrainerAdventureSignature);
             await contract.connect(winners[2]).claimTreasure(weekNumber, signature);
 
-            signature = await createSignature(weekNumber, 0, winners[2].address, signer, pxTrainerAdventureSignature);
-            await expect(contract.connect(winners[2]).claimTreasure(weekNumber, signature)).to.be.revertedWithCustomError(contract, InvalidSignature);
+            expect(Number(await collection.trainer.balanceOf(admin.address))).to.be.equal(1);
+            signature = await createSignature(weekNumber, 1, winners[2].address, signer, pxTrainerAdventureSignature);
+            await contract.connect(winners[2]).claimTreasure(weekNumber, signature);
 
             signature = await createSignature(weekNumber, 1, winners[2].address, signer, pxTrainerAdventureSignature);
+            await expect(contract.connect(winners[2]).claimTreasure(weekNumber, signature)).to.be.revertedWithCustomError(contract, InvalidSignature);
+
+            expect(Number(await collection.trainer.balanceOf(admin.address))).to.be.equal(0);
+            signature = await createSignature(weekNumber, 2, winners[2].address, signer, pxTrainerAdventureSignature);
             await expect(contract.connect(winners[2]).claimTreasure(weekNumber, signature)).to.be.revertedWithCustomError(contract, InsufficientToken);
         });
 
