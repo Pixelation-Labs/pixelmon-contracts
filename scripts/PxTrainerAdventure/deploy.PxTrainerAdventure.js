@@ -16,7 +16,7 @@ async function main() {
 
     // We get the contract to deploy
 
-    let _pxChainlinkManagerAddress = process.env.PX_SIGNATURE_CONTRACT_ADDRESS;
+    let _pxChainlinkManagerAddress = process.env.PX_CHAINLINK_MANAGER_CONTRACT_ADDRESS;
     const PxTrainerAdventure = await hre.ethers.getContractFactory("PxTrainerAdventure");
     const pxTrainerAdventure = await PxTrainerAdventure.deploy(_pxChainlinkManagerAddress);
 

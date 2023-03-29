@@ -60,10 +60,10 @@ describe("Signature test", function () {
             let walletAddress = user.address;
 
             let signature = await createSignature(weekNumber, claimIndex, walletAddress, signer, pxChainlinkManager);
-            let isValid = await pxChainlinkManager.recoverSignerFromSignature(weekNumber, claimIndex, walletAddress, signature);
+            let isValid = await pxChainlinkManager.isSignerVerifiedFromSignature(weekNumber, claimIndex, walletAddress, signature);
             expect(isValid).to.equal(true);
 
-            isValid = await pxChainlinkManager.recoverSignerFromSignature(2, claimIndex, walletAddress, signature);
+            isValid = await pxChainlinkManager.isSignerVerifiedFromSignature(2, claimIndex, walletAddress, signature);
             expect(isValid).to.equal(false);
 
         await expect(pxChainlinkManager.connect(signer).setSignerAddress(owner.address))
