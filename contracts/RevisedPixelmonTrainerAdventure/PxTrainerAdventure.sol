@@ -280,16 +280,18 @@ contract PxTrainerAdventure is PxWeekManager, ReentrancyGuard {
         if (_treasure.contractType == ERC_1155_TYPE) {
             IERC1155 erc1155Contract = IERC1155(_treasure.collectionAddress);
             erc1155Contract.safeTransferFrom(vaultWalletAddress, msg.sender, _treasure.tokenId, 1, "");
+            emit TreasureTransferred(_weekNumber, msg.sender, _treasure.collectionAddress, _treasure.tokenId, _treasure.contractType);
         }
         if (_treasure.contractType == ERC_721_TYPE) {
             IERC721 erc721Contract = IERC721(_treasure.collectionAddress);
-            if (_treasure.tokenIds.length == _treasure.claimedToken) {
+            if (_treasure.tokenIds.length < _treasure.claimedToken) {
                 revert InsufficientToken();
             }
             erc721Contract.transferFrom(vaultWalletAddress, msg.sender, _treasure.tokenIds[_treasure.claimedToken - 1]);
+            emit TreasureTransferred(_weekNumber, msg.sender, _treasure.collectionAddress,_treasure.tokenIds[_treasure.claimedToken - 1] , _treasure.contractType);
         }
 
-        emit TreasureTransferred(_weekNumber, msg.sender, _treasure.collectionAddress, _treasure.tokenId, _treasure.contractType);
+        
     }
 
     /// @notice Set treasure distributions for a week
