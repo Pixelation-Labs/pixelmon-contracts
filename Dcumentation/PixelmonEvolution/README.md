@@ -226,3 +226,6 @@ yarn publish:contract:goerli <NEW_CONTRACT_ADDRESS> <PIXELMON_CONTRACT> <SERUM_C
 7. From user wallet set approve for all in pixelmon contract
 8. Get signature from signer wallet
 9. Evolve pixelmon
+
+### Slither Report
+1. [Slither Report](./Slither%20Report%20For%20Evolution%202%20Smart%20Contract.pdf)
