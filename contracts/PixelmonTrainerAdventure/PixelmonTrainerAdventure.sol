@@ -245,14 +245,7 @@ contract PixelmonTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGu
     /// @param _to Address who will receive the token
     /// @param _id token ID
     /// @param _amount Amount of token to transfer
-    function transferToken(
-        address _collection,
-        uint256 _type,
-        address _from,
-        address _to,
-        uint256 _id,
-        uint256 _amount
-    ) internal {
+    function transferToken(address _collection, uint256 _type, address _from, address _to, uint256 _id, uint256 _amount) internal {
         if (_type == uint256(ContractType.ERC_1155)) {
             IERC1155 erc1155Contract = IERC1155(_collection);
             erc1155Contract.safeTransferFrom(_from, _to, _id, _amount, "");
@@ -322,11 +315,10 @@ contract PixelmonTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGu
     /// @notice Move treasure back to vault
     /// @param _weekNumber Number of the week
     /// @param _poolIndexs Indexs of the treasure in the pool
-    function removeTreasureFromPoolExternal(uint256 _weekNumber, uint256[] memory _poolIndexs)
-        external
-        onlyAdmin(msg.sender)
-        validPoolUpdationPeriod(_weekNumber)
-    {
+    function removeTreasureFromPoolExternal(
+        uint256 _weekNumber,
+        uint256[] memory _poolIndexs
+    ) external onlyAdmin(msg.sender) validPoolUpdationPeriod(_weekNumber) {
         for (uint256 index = 0; index < _poolIndexs.length; index++) {
             if (_poolIndexs[index] == 0 || _poolIndexs[index] > treasurePoolSize) {
                 revert InvalidPoolIndex();
@@ -342,11 +334,10 @@ contract PixelmonTrainerAdventure is WinnerSelectionManager, Utils, ReentrancyGu
     /// @notice Move treasure from vault to pool
     /// @param _weekNumber Number of the week
     /// @param _vaultIndexs Indexs of the treasure in the vault
-    function addTreasuresToPool(uint256 _weekNumber, uint256[] calldata _vaultIndexs)
-        external
-        onlyAdmin(msg.sender)
-        validPoolUpdationPeriod(_weekNumber)
-    {
+    function addTreasuresToPool(
+        uint256 _weekNumber,
+        uint256[] calldata _vaultIndexs
+    ) external onlyAdmin(msg.sender) validPoolUpdationPeriod(_weekNumber) {
         if (treasurePoolSize + _vaultIndexs.length > MAXIMUM_POOL_SIZE) {
             revert MaximumPoolSizeExceeded();
         }

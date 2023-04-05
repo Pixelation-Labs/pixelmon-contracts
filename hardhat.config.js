@@ -42,12 +42,17 @@ module.exports = {
     goerli: {
       url: `https://eth-goerli.g.alchemy.com/v2/b8Uz5l-fP0sVGjcpTTGqUw87jlPsFkph`,
       accounts: [`0x${PRIVATE_KEY}`]
+    },
+    sepolia: {
+      url: `https://eth-sepolia.g.alchemy.com/v2/HvAHnkTRI3W6J8C5-t-1bv1l8PYVdO_Y`,
+      accounts: [`0x${PRIVATE_KEY}`]
     }
   },
   etherscan: {
     apiKey: {
       mainnet: 'B5BJDZ526T7SINAJRN3TJ7FPU5KAJQACDS',
-      goerli: 'B5BJDZ526T7SINAJRN3TJ7FPU5KAJQACDS'
+      goerli: 'B5BJDZ526T7SINAJRN3TJ7FPU5KAJQACDS',
+      sepolia: 'B5BJDZ526T7SINAJRN3TJ7FPU5KAJQACDS'
     }
   }
 }
