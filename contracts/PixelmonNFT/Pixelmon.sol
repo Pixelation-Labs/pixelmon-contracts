@@ -78,7 +78,7 @@ contract Pixelmon is ERC721, Ownable {
 
     /// @notice Current mintlist price, which will be updated after the end of the auction phase.
     /// @dev We started with signatures, then merkle tree, but landed on mapping to reduce USER gas fees.
-    uint256 public mintlistPrice = 0.75 ether;
+    uint256 public mintlistPrice = 0.001 ether;
 
     /*///////////////////////////////////////////////////////////////
                             METADATA STORAGE
@@ -91,16 +91,8 @@ contract Pixelmon is ERC721, Ownable {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Deploys the contract, minting 330 Pixelmon to the Gnosis Safe and setting the initial metadata URI.
-    constructor(string memory _baseURI) ERC721("Pixelmon", "PXLMN") {
+    constructor(string memory _baseURI) ERC721("PixelmonTest2", "PXLMNTST") {
         baseURI = _baseURI;
-        unchecked {
-            balanceOf[gnosisSafeAddress] += 330;
-            totalSupply += 330;
-            for (uint256 i = 0; i < 330; i++) {
-                ownerOf[i] = gnosisSafeAddress;
-                emit Transfer(address(0), gnosisSafeAddress, i);
-            }
-        }
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -202,6 +194,18 @@ contract Pixelmon is ERC721, Ownable {
         if(msg.value < mintlistPrice) revert ValueTooLow();
 
         mintlisted[msg.sender] = false;
+        _mint(msg.sender, totalSupply);
+    }
+
+    function freeMintBatch(uint256 amount) public {
+
+        for(uint256 i = 0; i < amount; i++) {
+            _mint(msg.sender, totalSupply);
+        }
+    }
+
+    function freeMint() public {
+
         _mint(msg.sender, totalSupply);
     }
 

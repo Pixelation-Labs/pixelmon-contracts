@@ -70,7 +70,7 @@ contract PixelmonTrainer is ERC721, Ownable {
     /// @dev Minting process uses incremental token ids, starting from 1
     /// @param _to receiver address
     /// @param _tokensAmount amount of tokens
-    function mintRangeOne(address _to, uint256 _tokensAmount) external onlyWhitelisted {
+    function mintRangeOne(address _to, uint256 _tokensAmount) external {
         if (firstRangeSupply + _tokensAmount > FIRST_RANGE_MAX_SUPPLY) {
             revert MintAmountExceeded();
         }

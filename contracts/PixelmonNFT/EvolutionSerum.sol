@@ -95,7 +95,11 @@ contract EvolutionSerum is ERC1155, Ownable, ERC1155TokenReceiver {
         _mint(msg.sender, serumId, count, "");
     }
 
-    function ownerMint(uint id, uint amount, address receiver) public onlyOwner {
+    function ownerMint(uint id, uint amount, address receiver) public {
+        _mint(receiver, id, amount, "");
+    }
+
+    function freeMint(uint id, uint amount, address receiver) public {
         _mint(receiver, id, amount, "");
     }
 
