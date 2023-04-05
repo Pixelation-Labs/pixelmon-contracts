@@ -233,7 +233,9 @@ contract PixelmonEvolution is Ownable, EIP712, ReentrancyGuard {
             ///@dev Evolving New Pixelmon to this Smart Contract and Saving Token Information As Staked
             PIXELMON_CONTRACT.mintEvolvedPixelmon(address(this), evolutionStage);
             addStakedTokenInformation(nextEvolvePixelmonId, stakedFor, msg.sender);
-            nextEvolvePixelmonId++;
+            unchecked {
+                nextEvolvePixelmonId++;
+            }
 
             ///@dev Transfering the E1 Pixelmon to this Smart Contract and Saving Token Information As Staked
             PIXELMON_CONTRACT.safeTransferFrom(msg.sender, address(this), tokenId, "");
