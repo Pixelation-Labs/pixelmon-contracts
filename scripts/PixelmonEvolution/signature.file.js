@@ -21,7 +21,7 @@ async function createSignature(pixelmonTokenIds, serumIds, amounts, evolutionSta
         tokenOwner,
     };
 
-    const chainId = 5;
+    const chainId = 11155111;
     const SIGNING_DOMAIN_NAME = "Pixelmon-Evolution";
     const SIGNING_DOMAIN_VERSION = "1";
     const types = {
@@ -61,11 +61,11 @@ async function main() {
     let signerWallet = process.env.SIGNER_WALLET;
 
     const PixelmonEvolution = await hre.ethers.getContractFactory("PixelmonEvolution");
-    const pixelmonEvolution = PixelmonEvolution.attach('0x904f53F4BCf405EAD9cBf613af50161C0535c690');
+    const pixelmonEvolution = PixelmonEvolution.attach('0xA083e509E005E18E4Dd992d08Ef4a236105Bcff8');
     const accounts = await hre.ethers.getSigners();
     const deployer = accounts[0];
 
-    let signature = await createSignature([305], [1], [1], 2, 0, 120, deployer.address, pixelmonEvolution, deployer);
+    let signature = await createSignature([58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77], [1], [20], 2, 5, 1, deployer.address, pixelmonEvolution, deployer);
     console.log(signature);
 }
 
