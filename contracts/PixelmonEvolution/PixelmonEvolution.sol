@@ -49,10 +49,10 @@ contract PixelmonEvolution is Ownable, EIP712, ReentrancyGuard {
     /// @param stakedAt Staking block timestamp in second
     /// @param stakedFor Token staking time period in second
     struct StakedTokenInformation {
-        uint256 tokenId;
+        uint32 tokenId;
         address owner;
-        uint256 stakedAt;
-        uint256 stakedFor;
+        uint32 stakedAt;
+        uint32 stakedFor;
     }
 
     /// @notice List of staked Pixelmon token with staking information 
@@ -192,7 +192,7 @@ contract PixelmonEvolution is Ownable, EIP712, ReentrancyGuard {
         }
 
         uint256 totalEvolveAmount;
-        for (uint256 index = 0; index < serumAmounts.length; index++) {
+        for (uint256 index = 0; index < serumAmounts.length; index = _uncheckedInc(index)) {
             totalEvolveAmount += serumAmounts[index];
         }
 
@@ -238,7 +238,7 @@ contract PixelmonEvolution is Ownable, EIP712, ReentrancyGuard {
             }
 
             ///@dev Transfering the E1 Pixelmon to this Smart Contract and Saving Token Information As Staked
-            PIXELMON_CONTRACT.safeTransferFrom(msg.sender, address(this), tokenId, "");
+            PIXELMON_CONTRACT.transferFrom(msg.sender, address(this), tokenId);
             addStakedTokenInformation(tokenId, stakedFor, msg.sender);
         }
 
@@ -263,7 +263,7 @@ contract PixelmonEvolution is Ownable, EIP712, ReentrancyGuard {
                 revert InvalidOwner();
             }
             checkTimeLock(vault[tokenId].stakedAt, vault[tokenId].stakedFor);
-            PIXELMON_CONTRACT.safeTransferFrom(address(this), msg.sender, tokenId, "");
+            PIXELMON_CONTRACT.transferFrom(address(this), msg.sender, tokenId);
         }
 
         emit PixelmonBatchClaim(msg.sender, pixelmonTokenIds, "pixelmon claimed");
@@ -274,7 +274,7 @@ contract PixelmonEvolution is Ownable, EIP712, ReentrancyGuard {
     /// @param stakedFor staking time period in second
     /// @param owner Pixelmon token owner
     function addStakedTokenInformation(uint256 tokenId, uint256 stakedFor, address owner) private {
-        vault[tokenId] = StakedTokenInformation({owner: owner, tokenId: tokenId, stakedAt: block.timestamp, stakedFor: stakedFor});
+        vault[tokenId] = StakedTokenInformation({owner: owner, tokenId: uint32(tokenId), stakedAt: uint32(block.timestamp), stakedFor: uint32(stakedFor)});
     }
 
     /// @notice Recovers signer wallet from signature
