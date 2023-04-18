@@ -5,6 +5,9 @@ Pixelmon contracts
     1. [Pixelmon Trainer](https://github.com/Pixelation-Labs/pixelmon-contracts/blob/initial-setup/AuditReport/Pixelmon%20Trainer%20Smart%20Contract%20Audit%20by%20Solidity%20Finance.pdf)
     2. [Pixelmon Staking](https://github.com/Pixelation-Labs/pixelmon-contracts/blob/initial-setup/AuditReport/Pixelmon%20Staking%20Smart%20Contract%20Audit%20by%20Solidity%20Finance.pdf)
     3. [Trainer Adventure + Trainer Gear + Sponsored Trips](https://github.com/Pixelation-Labs/pixelmon-contracts/blob/initial-setup/AuditReport/PixelmonTrainer_audit_report.pdf)
+    4. [PxTrainerAdventure Version 1.0](./AuditReport/RevisedPixelmonTrainerAdventure/PxTrainerAdventure_audit_report%20(1).pdf)
+    5. [PxTrainerAdventure Version 2.0](./AuditReport/RevisedPixelmonTrainerAdventure/PxTrainerAdventure_audit_report_update.pdf)
+    6. [PixelmonEvolution](./AuditReport/PixelmonEvolution/PixelmonEvolution_audit_report.pdf)
 
 # About
 This project contains all the smart contract of Pixelmon. It contains several pixelmon token collections, Staking and adventure busines smart contract. Smart contract it contains are:
