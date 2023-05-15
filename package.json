@@ -31,7 +31,8 @@
     "test:revised:pixelmon:trainer:adventure": "npx hardhat test --network hardhat ./test/revised-pixelmon-trainer-adventure/deploy.js",
     "rescue:trainer:sepolia": "npx hardhat --network sepolia run ./scripts/PixelmonStaking/staking/rescue.token.js",
     "rescue:trainer:goerli": "npx hardhat --network goerli run ./scripts/PixelmonStaking/staking/rescue.token.js",
-    "rescue:trainer:mainnet": "npx hardhat --network mainnet run ./scripts/PixelmonStaking/staking/rescue.token.js"
+    "rescue:trainer:mainnet": "npx hardhat --network mainnet run ./scripts/PixelmonStaking/staking/rescue.token.js",
+    "deploy:e2serum:goerli": "npx hardhat run ./scripts/Evolution3Serum/deploy.contract.js --network goerli"
   },
   "dependencies": {
     "@chainlink/contracts": "^0.5.1",
@@ -50,6 +51,7 @@
     "hardhat-gas-reporter": "^1.0.8",
     "keccak256": "^1.0.6",
     "merkletreejs": "^0.2.32",
+    "operator-filter-registry": "^1.4.1",
     "solidity-coverage": "^0.7.21"
   },
   "devDependencies": {
