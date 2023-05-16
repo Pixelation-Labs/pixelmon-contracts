@@ -17,6 +17,7 @@
     "deploy:pixelmon:evolution:contract:mainnet": "npx hardhat run ./scripts/PixelmonEvolution/deploy.Contract.js --network mainnet",
     "deploy:prototype:contract:goerli": "npx hardhat run ./scripts/PrototypeToken/deploy.contract.js --network goerli",
     "test:coverage:revised:pixelmon:trainer:adventure": "npx hardhat coverage --network hardhat --testfiles \"test/revised-pixelmon-trainer-adventure/*.js\"",
+    "test:coverage:evolution3:serum": "npx hardhat coverage --network hardhat --testfiles \"test/Evolution3Serum/*.js\"",
     "test:coverage:evolution": "npx hardhat coverage --network hardhat --testfiles \"test/pixelmon-evolution/*.js\"",
     "publish:contract:mainnet": "npx hardhat verify --network mainnet",
     "deploy:pxTrainerAdventureContract:goerli": "npx hardhat run ./scripts/PxTrainerAdventure/deploy.PxTrainerAdventure.js --network goerli",
