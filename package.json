@@ -31,7 +31,12 @@
     "test:revised:pixelmon:trainer:adventure": "npx hardhat test --network hardhat ./test/revised-pixelmon-trainer-adventure/deploy.js",
     "rescue:trainer:sepolia": "npx hardhat --network sepolia run ./scripts/PixelmonStaking/staking/rescue.token.js",
     "rescue:trainer:goerli": "npx hardhat --network goerli run ./scripts/PixelmonStaking/staking/rescue.token.js",
-    "rescue:trainer:mainnet": "npx hardhat --network mainnet run ./scripts/PixelmonStaking/staking/rescue.token.js"
+    "rescue:trainer:mainnet": "npx hardhat --network mainnet run ./scripts/PixelmonStaking/staking/rescue.token.js",
+    "deploy:pxPartSquadContract:goerli": "npx hardhat run ./scripts/pxPartSquad/deploy.pxPartSquad.js --network goerli",
+    "deploy:PsChainlinkManagerContract:goerli": "npx hardhat run ./scripts/pxPartSquad/deploy.PsChainlinkManager.js --network goerli"
+      
+
+
   },
   "dependencies": {
     "@chainlink/contracts": "^0.5.1",
