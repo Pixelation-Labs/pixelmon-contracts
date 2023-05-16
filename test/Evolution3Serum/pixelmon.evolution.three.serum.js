@@ -447,30 +447,31 @@ describe("safeTransferFrom functionality", function () {
         balance = await contract.balanceOf(burnerWallet.address, 1);
         expect(Number(balance)).to.be.equal(5);
     });
-});
 
-it("Only token holder wallet will be able to transfer token", async function () {
-    let balance;
-    await contract.connect(deployerWallet).setMinterAddress(minterWallet.address, true);
-
-    await contract.connect(minterWallet).mint(anonymousWallet.address, 1, 10);
-    await contract.connect(minterWallet).mint(burnerWallet.address, 1, 10);
-    await contract.connect(minterWallet).mint(minterWallet.address, 1, 10);
-    await contract.connect(minterWallet).mint(deployerWallet.address, 1, 10);
-
-    balance = await contract.balanceOf(anonymousWallet.address, 1);
-    expect(Number(balance)).to.be.equal(10);
-
-    balance = await contract.balanceOf(burnerWallet.address, 1);
-    expect(Number(balance)).to.be.equal(10);
-
-    await contract.connect(burnerWallet).safeBatchTransferFrom(burnerWallet.address, anonymousWallet.address, [1], [5], contract.address);
-
-    balance = await contract.balanceOf(anonymousWallet.address, 1);
-    expect(Number(balance)).to.be.equal(15);
-
-    balance = await contract.balanceOf(burnerWallet.address, 1);
-    expect(Number(balance)).to.be.equal(5);
+    it("Only token holder wallet will be able to transfer token in batch", async function () {
+        let balance;
+        await contract.connect(deployerWallet).setMinterAddress(minterWallet.address, true);
+    
+        await contract.connect(minterWallet).mint(anonymousWallet.address, 1, 10);
+        await contract.connect(minterWallet).mint(burnerWallet.address, 1, 10);
+        await contract.connect(minterWallet).mint(minterWallet.address, 1, 10);
+        await contract.connect(minterWallet).mint(deployerWallet.address, 1, 10);
+    
+        balance = await contract.balanceOf(anonymousWallet.address, 1);
+        expect(Number(balance)).to.be.equal(10);
+    
+        balance = await contract.balanceOf(burnerWallet.address, 1);
+        expect(Number(balance)).to.be.equal(10);
+    
+        await contract.connect(burnerWallet).safeBatchTransferFrom(burnerWallet.address, anonymousWallet.address, [1], [5], contract.address);
+    
+        balance = await contract.balanceOf(anonymousWallet.address, 1);
+        expect(Number(balance)).to.be.equal(15);
+    
+        balance = await contract.balanceOf(burnerWallet.address, 1);
+        expect(Number(balance)).to.be.equal(5);
+    });
+    
 });
 
 describe(`uri function test`, function () {
