@@ -109,7 +109,7 @@ Deployment test
 ## Unit test
 File                    |  % Stmts | % Branch |  % Funcs |  % Lines |Uncovered Lines |
 ------------------------|----------|----------|----------|----------|----------------|
- contracts/             |      100 |    100 |      100 |      100 |                |
+ Evolution3Serum/             |      100 |    100 |      100 |      100 |                |
   Evolution3Serum.sol         |      100 |      100 |      100 |      100 |                |
 All files               |      100 |    100 |      100 |      100 |                |
 
@@ -156,11 +156,11 @@ yarn deploy:pixelmon:evolution:contract:mainnet
 ```
 7. Deploy smart contract For goerli it will be 
 ```
-yarn deploy:e2serum:goerli
+yarn deploy:e3serum:goerli
 ```
 8. Deploy smart contract For goerli it will be 
 ```
-yarn deploy:e2serum:mainnet
+yarn deploy:e3serum:mainnet
 ```
 
 9. Publish Smart contract

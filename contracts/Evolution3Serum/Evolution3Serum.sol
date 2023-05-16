@@ -1,9 +1,9 @@
-// SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.16;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.19;
 
 /// @title Pixelmon Evolution 3 Serum Contract
 /// @author LiquidX
-/// @notice This smart contract will be used for Pixelmon token Evolution
+/// @notice This smart contract is for Evolution 3 Serum collection
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/common/ERC2981.sol";
