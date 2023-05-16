@@ -8,6 +8,7 @@ Pixelmon contracts
     4. [PxTrainerAdventure Version 1.0](./AuditReport/RevisedPixelmonTrainerAdventure/PxTrainerAdventure_audit_report%20(1).pdf)
     5. [PxTrainerAdventure Version 2.0](./AuditReport/RevisedPixelmonTrainerAdventure/PxTrainerAdventure_audit_report_update.pdf)
     6. [PixelmonEvolution](./AuditReport/PixelmonEvolution/PixelmonEvolution_audit_report.pdf)
+    7. [PixelmonEvolution Final](./AuditReport/PixelmonEvolution/PixelmonEvolution_audit_report_update.pdf)
 
 # About
 This project contains all the smart contract of Pixelmon. It contains several pixelmon token collections, Staking and adventure busines smart contract. Smart contract it contains are:

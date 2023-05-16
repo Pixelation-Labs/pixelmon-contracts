@@ -33,7 +33,10 @@
     "rescue:trainer:sepolia": "npx hardhat --network sepolia run ./scripts/PixelmonStaking/staking/rescue.token.js",
     "rescue:trainer:goerli": "npx hardhat --network goerli run ./scripts/PixelmonStaking/staking/rescue.token.js",
     "rescue:trainer:mainnet": "npx hardhat --network mainnet run ./scripts/PixelmonStaking/staking/rescue.token.js",
-    "deploy:e2serum:goerli": "npx hardhat run ./scripts/Evolution3Serum/deploy.contract.js --network goerli"
+    "deploy:e2serum:goerli": "npx hardhat run ./scripts/Evolution3Serum/deploy.contract.js --network goerli",
+    "deploy:e2serum:mainnet": "npx hardhat run ./scripts/Evolution3Serum/deploy.contract.js --network mainnet",
+    "deploy:e2serum:hardhat": "npx hardhat run ./scripts/Evolution3Serum/deploy.contract.js --network hardhat",
+    "deploy:e2serum:sepolia": "npx hardhat run ./scripts/Evolution3Serum/deploy.contract.js --network sepolia"
   },
   "dependencies": {
     "@chainlink/contracts": "^0.5.1",
