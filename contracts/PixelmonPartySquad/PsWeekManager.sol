@@ -6,7 +6,7 @@ pragma solidity ^0.8.16;
 /// @notice This smart contract provides configuration for the Trainer Adventure event on Pixelmon
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "./IPxChainlinkManager.sol";
+import "./IPsChainlinkManager.sol";
 import "./PxUtils.sol";
 
 /// @notice Thrown when end timestamp is less than or equal to start timestamp
@@ -26,7 +26,7 @@ error NotModerator();
 /// @notice Thrown when length of both arrays are not equal
 error InvalidLength();
 
-contract PxWeekManager is Ownable, PxUtils {
+contract PsWeekManager is Ownable, PxUtils {
     
     /// @notice Struct object for winner information
     /// @param claimLimit Maximum treasure that can be claimed by winner for a particular week
@@ -125,7 +125,7 @@ contract PxWeekManager is Ownable, PxUtils {
     mapping(address => bool) public moderatorWallets;
 
     /// @dev Signature Contract
-    IPxChainlinkManager public pxChainlinkManagerContract;
+    IPsChainlinkManager public psChainlinkManagerContract;
 
     /// @notice Check whether address has "Admin" role
     /// @param _walletAddress Valid ethereum address
@@ -256,7 +256,7 @@ contract PxWeekManager is Ownable, PxUtils {
     // @notice Generate random number from Chainlink
     /// @param _weekNumber Number of the week
     function generateChainLinkRandomNumbers(uint256 _weekNumber) external onlyModerator(msg.sender) validWinnerUpdationPeriod(_weekNumber) {
-        pxChainlinkManagerContract.generateChainLinkRandomNumbers(_weekNumber);
+        psChainlinkManagerContract.generateChainLinkRandomNumbers(_weekNumber);
     }
 
     /// @notice Get week informations for specific week
@@ -264,7 +264,7 @@ contract PxWeekManager is Ownable, PxUtils {
     /// @return week Information for specific week
     function getWeekInfo(uint256 _weekNumber) external view returns (WeekData memory week) {
         week.specialTreasureWinners = weekInfos[_weekNumber].specialTreasureWinners;
-        week.randomNumbers = pxChainlinkManagerContract.getWeeklyRandomNumbers(_weekNumber);
+        week.randomNumbers = psChainlinkManagerContract.getWeeklyRandomNumbers(_weekNumber);
     }
 
     /// @notice Get claimed count for a winner for specific week

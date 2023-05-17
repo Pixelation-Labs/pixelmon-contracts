@@ -3,8 +3,8 @@ pragma solidity ^0.8.16;
 
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "./PxWeekManager.sol";
-import "./IPxChainlinkManager.sol";
+import "./PsWeekManager.sol";
+import "./IPsChainlinkManager.sol";
 
 /// @notice Thrown when all treasures are already claimed
 error AlreadyClaimed();
@@ -19,7 +19,7 @@ error InsufficientToken();
 /// @notice Thrown when the input signature is invalid.
 error InvalidSignature();
 
-contract PxPartySquad is PxWeekManager, ReentrancyGuard {
+contract PxPartySquad is PsWeekManager, ReentrancyGuard {
     /// @notice code number for ERC1155 token
     uint8 public constant ERC_1155_TYPE = 1;
     /// @notice code number for ERC721 token
@@ -72,18 +72,18 @@ contract PxPartySquad is PxWeekManager, ReentrancyGuard {
 
     /// @notice The contract constructor
     /// @dev The constructor parameters only used as input
-    ///      from PxWeekManager contract
+    ///      from PsWeekManager contract
     ///        More https://docs.chain.link/docs/vrf/v2/subscription/supported-networks/#configurations
     /// @param _pxChainlinkContractAddress signature contract address
-    constructor(address _pxChainlinkContractAddress) PxWeekManager() {
-        pxChainlinkManagerContract = IPxChainlinkManager(_pxChainlinkContractAddress);
+    constructor(address _pxChainlinkContractAddress) PsWeekManager() {
+        psChainlinkManagerContract = IPsChainlinkManager(_pxChainlinkContractAddress);
     }
 
     /// @notice Sets Chainlink manager contract address
     /// @dev Chainlink manager is used as signer and to interact with Chainlink
     /// @param _pxChainlinkContractAddress Chainlink manager contract address
     function setpxChainlinkManagerContractAddress(address _pxChainlinkContractAddress) external onlyOwner {
-        pxChainlinkManagerContract = IPxChainlinkManager(_pxChainlinkContractAddress);
+        psChainlinkManagerContract = IPsChainlinkManager(_pxChainlinkContractAddress);
     }
 
     /// @notice Set address to become vault
@@ -127,7 +127,7 @@ contract PxPartySquad is PxWeekManager, ReentrancyGuard {
         if (!(block.timestamp >= weekInfos[_weekNumber].claimStartTimeStamp && block.timestamp <= weekInfos[_weekNumber].endTimeStamp)) {
             revert InvalidClaimingPeriod();
         }
-        bool isValidSigner = pxChainlinkManagerContract.isSignerVerifiedFromSignature(
+        bool isValidSigner = psChainlinkManagerContract.isSignerVerifiedFromSignature(
             _weekNumber,
             weekInfos[_weekNumber].winners[msg.sender].claimed,
             msg.sender,

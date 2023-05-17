@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.16;
 
-interface IPxChainlinkManager {
+interface IPsChainlinkManager {
     /// @notice Recovers signer wallet from signature
     /// @dev View function for signature recovering
     /// @param weekNumber Week number for claim

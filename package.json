@@ -32,8 +32,8 @@
     "rescue:trainer:sepolia": "npx hardhat --network sepolia run ./scripts/PixelmonStaking/staking/rescue.token.js",
     "rescue:trainer:goerli": "npx hardhat --network goerli run ./scripts/PixelmonStaking/staking/rescue.token.js",
     "rescue:trainer:mainnet": "npx hardhat --network mainnet run ./scripts/PixelmonStaking/staking/rescue.token.js",
-    "deploy:pxPartSquadContract:goerli": "npx hardhat run ./scripts/pxPartSquad/deploy.pxPartSquad.js --network goerli",
-    "deploy:PsChainlinkManagerContract:goerli": "npx hardhat run ./scripts/pxPartSquad/deploy.PsChainlinkManager.js --network goerli"
+    "deploy:PxPartSquadContract:goerli": "npx hardhat run ./scripts/PxPartySquad/deploy.PxPartySquad.js --network goerli",
+    "deploy:PsChainlinkManagerContract:goerli": "npx hardhat run ./scripts/PxPartySquad/deploy.PsChainlinkManager.js --network goerli"
       
 
 
