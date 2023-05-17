@@ -36,7 +36,7 @@ error MintAmountForTokenIDExceeded();
 using Strings for uint256;
 
 /// @notice Pixelmon Evolution 3 Serum Smart Contract
-/// @dev This is a ERC1155 token token standard smart contract
+/// @dev This is an ERC1155 token token standard smart contract
 /// @dev Using Ownable modifiers for configuration methods
 contract Evolution3Serum is ERC1155, Ownable, ERC2981, DefaultOperatorFilterer {
     /// @notice Data structure for holding each type token information
@@ -107,14 +107,14 @@ contract Evolution3Serum is ERC1155, Ownable, ERC2981, DefaultOperatorFilterer {
     /// @param receiver Address who receives the token
     /// @param tokenId Item token ID
     /// @param amount Amount of item that is minted
-    event E3SerunMint(address minter, address receiver, uint256 tokenId, uint256 amount);
+    event E3SerumMint(address minter, address receiver, uint256 tokenId, uint256 amount);
 
     /// @notice There's a burn transaction happen
     /// @dev Emit event when calling burn function
     /// @param walletAddress Address of the token holder
     /// @param tokenId Token to burnt
     /// @param amount Amount of token to burn
-    event E3SeumBurn(address walletAddress, uint256 tokenId, uint256 amount);
+    event E3SerumBurn(address walletAddress, uint256 tokenId, uint256 amount);
 
     /// @dev Token Name
     string public constant name = "E3 Serum";
@@ -186,7 +186,7 @@ contract Evolution3Serum is ERC1155, Ownable, ERC2981, DefaultOperatorFilterer {
 
         _mint(_receiver, _tokenId, _amount, "");
 
-        emit E3SerunMint(msg.sender, _receiver, _tokenId, _amount);
+        emit E3SerumMint(msg.sender, _receiver, _tokenId, _amount);
     }
 
     /// @notice Set base URL for storing off-chain information
@@ -217,7 +217,7 @@ contract Evolution3Serum is ERC1155, Ownable, ERC2981, DefaultOperatorFilterer {
         }
 
         _burn(_userWallet, _tokenId, _amount);
-        emit E3SeumBurn(_userWallet, _tokenId, _amount);
+        emit E3SerumBurn(_userWallet, _tokenId, _amount);
     }
 
     /// @dev See {IERC1155-setApprovalForAll}.
