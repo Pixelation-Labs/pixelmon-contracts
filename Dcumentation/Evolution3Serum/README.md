@@ -61,7 +61,7 @@ Deployment test
   Set Minter Address functionality
     ✔ Only Owner will be able to setMinterAddress 
     ✔ Owner will be able to setMinterAddress to both true and false status 
-    ✔ Owner will be able to set zero address as minter address
+    ✔ Owner will not be able to set zero address as minter address
 
   Set Burner Address functionality
     ✔ Only Owner will be able to setBurnerAddress 
@@ -183,6 +183,3 @@ yarn publish:contract:goerli <NEW_CONTRACT_ADDRESS> <METADATA_BASE_URI>
 2. Mint token
 3. Check Minted token in opensea
 4. Setup opensea page
-
-### Slither Report
-[Not completed yet]()

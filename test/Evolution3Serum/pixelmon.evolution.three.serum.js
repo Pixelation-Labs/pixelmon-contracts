@@ -137,7 +137,7 @@ describe("Set Minter Address functionality", function () {
         expect(minterStatus).to.be.false;
     });
 
-    it("Owner will be able to set zero address as minter address", async function () {
+    it("Owner will not be able to set zero address as minter address", async function () {
         await expect(contract.setMinterAddress("0x0000000000000000000000000000000000000000", true)).to.be.revertedWithCustomError(
             contract,
             "InvalidAddress"
