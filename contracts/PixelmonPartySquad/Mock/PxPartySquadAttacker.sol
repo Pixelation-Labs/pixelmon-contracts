@@ -7,7 +7,7 @@ import "../PxPartySquad.sol";
 
     error RejectCall();
 
-contract TrainerAdventureAttacker is IERC1155Receiver {
+contract PxPartySquadAttacker is IERC1155Receiver {
 
     PxPartySquad mainContract;
 

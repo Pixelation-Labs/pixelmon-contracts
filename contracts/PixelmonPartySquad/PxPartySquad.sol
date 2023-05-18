@@ -74,16 +74,16 @@ contract PxPartySquad is PsWeekManager, ReentrancyGuard {
     /// @dev The constructor parameters only used as input
     ///      from PsWeekManager contract
     ///        More https://docs.chain.link/docs/vrf/v2/subscription/supported-networks/#configurations
-    /// @param _pxChainlinkContractAddress signature contract address
-    constructor(address _pxChainlinkContractAddress) PsWeekManager() {
-        psChainlinkManagerContract = IPsChainlinkManager(_pxChainlinkContractAddress);
+    /// @param _psChainlinkContractAddress signature contract address
+    constructor(address _psChainlinkContractAddress) PsWeekManager() {
+        psChainlinkManagerContract = IPsChainlinkManager(_psChainlinkContractAddress);
     }
 
     /// @notice Sets Chainlink manager contract address
     /// @dev Chainlink manager is used as signer and to interact with Chainlink
-    /// @param _pxChainlinkContractAddress Chainlink manager contract address
-    function setpxChainlinkManagerContractAddress(address _pxChainlinkContractAddress) external onlyOwner {
-        psChainlinkManagerContract = IPsChainlinkManager(_pxChainlinkContractAddress);
+    /// @param _psChainlinkContractAddress Chainlink manager contract address
+    function setPsChainlinkManagerContractAddress(address _psChainlinkContractAddress) external onlyOwner {
+        psChainlinkManagerContract = IPsChainlinkManager(_psChainlinkContractAddress);
     }
 
     /// @notice Set address to become vault
