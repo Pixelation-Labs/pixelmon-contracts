@@ -34,7 +34,7 @@
     "rescue:trainer:mainnet": "npx hardhat --network mainnet run ./scripts/PixelmonStaking/staking/rescue.token.js",
     "deploy:PxPartSquadContract:goerli": "npx hardhat run ./scripts/PxPartySquad/deploy.PxPartySquad.js --network goerli",
     "deploy:PsChainlinkManagerContract:goerli": "npx hardhat run ./scripts/PxPartySquad/deploy.PsChainlinkManager.js --network goerli",
-    "test:coverage:revised:pxPartySquad": "npx hardhat coverage --network hardhat --testfiles \"test/pixelmon-party-squad/*.js\""
+    "test:coverage:pxPartySquad": "npx hardhat coverage --network hardhat --testfiles \"test/PxPartySquad/*.js\""
     
       
 
