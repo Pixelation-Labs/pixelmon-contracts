@@ -10,7 +10,7 @@ const { updateWeeklyTimeStamp } = require("./updateWeeklyTimeStamp");
 const { setVaultAddress } = require("./setVaultAddress");
 const { addTreasure } = require("./addTreasure");
 const { addSpecialTreasure } = require("./addSpecialTreasure");
-const { setSpecialTreasureWinnerMap } = require("./setSpecialTreasureWinnerMap");
+const { setSpecialTreasureWinnerLimit } = require("./setSpecialTreasureWinnerLimit");
 const { testSignature } = require("./signatureTest");
 const { setWeeklyTreasureDistribution } = require("./setWeeklyTreasureDistribution");
 const { setWeeklySponsoredTripDistribution } = require("./setWeeklySponsoredTripDistribution");
@@ -149,7 +149,7 @@ describe(`${contractName} contract`, () => {
 
         await addTreasure(contract, testUsers, collection);
         await addSpecialTreasure(contract, testUsers, collection);
-        await setSpecialTreasureWinnerMap(contract, testUsers);
+        await setSpecialTreasureWinnerLimit(contract, testUsers);
         await setWeeklyTreasureDistribution(contract, testUsers, blockTimestamp);
         await setWeeklySponsoredTripDistribution(contract, testUsers, blockTimestamp);
         await updateWeeklyWinners(contract, testUsers);

@@ -57,7 +57,7 @@ const updateWeeklyWinners = async(contract, testUsers) => {
             for(let winner of weekData.specialTreasureWinners) {
                 // Should return false since the selected winner
                 // is the one who has not claimed/owned Sponsored Trip
-               expect(await contract.specialTreasureWinners(winner)).to.not.ok;
+               expect(await contract.specialTreasureWinnersLimit(winner)).to.equal(0);
             }
         })
 

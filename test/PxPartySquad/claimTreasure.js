@@ -59,7 +59,7 @@ const claimTreasure = async (contract, testUsers, collection, blockTimestamp, cr
 
             const winner = winners[2];
             let signature = await createSignature(weekNumber, 0, winner.address, signer, pxTrainerAdventureSignature);
-            expect(await contract.specialTreasureWinners(winner.address)).to.be.ok;
+            expect(await contract.specialTreasureWinnersLimit(winner.address)).to.be.ok;
             expect(Number(await collection.specialTreasure.balanceOf(winner.address, 1))).to.be.equal(0);
             await expect(contract.connect(winner).claimTreasure(weekNumber, signature)).to.emit(contract, TreasureTransferred);
             signature = await createSignature(weekNumber, 1, winner.address, signer, pxTrainerAdventureSignature);

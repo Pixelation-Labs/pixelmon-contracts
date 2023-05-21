@@ -28,13 +28,16 @@ contract PxPartySquad is PsWeekManager, ReentrancyGuard {
     /// @notice Wallet address that keeps all treasures
     address public vaultWalletAddress;
 
+    uint256 public maxSpecialTreasureLimit = 1;
+
+    
     /// @notice Variable to store Special Treasures treasure information such
     ///         as the collection address, token ID, amount, and token type
     Treasure public specialTreasure;
     /// @notice List of addresses who have won Special Treasures 
     /// @custom:key wallet address
     /// @custom:value 'true' means already owns Special Treasures
-    mapping(address => bool) public specialTreasureWinners;
+    mapping(address => uint256) public specialTreasureWinnersLimit;
 
     /// @notice Check whether both array input has the same length or not
     /// @param length1 first length of the array input
@@ -158,7 +161,7 @@ contract PxPartySquad is PsWeekManager, ReentrancyGuard {
     function primaryClaim(uint256 _weekNumber) internal {
         Week storage week = weekInfos[_weekNumber];
         if (week.specialTreasureWinnerMap[msg.sender]) {
-            specialTreasureWinners[msg.sender] = true;
+            specialTreasureWinnersLimit[msg.sender]++;
             week.specialTreasureWinnerMap[msg.sender] = false;
 
             unchecked {
@@ -342,7 +345,7 @@ contract PxPartySquad is PsWeekManager, ReentrancyGuard {
                 randomIndex = 0;
             }
             if (
-                !specialTreasureWinners[_winners[randomIndex]] &&
+                specialTreasureWinnersLimit[_winners[randomIndex]] < maxSpecialTreasureLimit &&
                 specialTreasureWinnerCount < weekInfos[_weekNumber].specialTreasureCount &&
                 _treasureCounts[randomIndex] > 0
             ) {
@@ -368,13 +371,21 @@ contract PxPartySquad is PsWeekManager, ReentrancyGuard {
 
     /// @notice Add a list of wallet addresses that have won Special Treasure
     /// @param _previousWinners List of addresses that have won Special Treasure
-    /// @param _flags 'true' means already won
-    function setSpecialTreasureWinnerMap(
+    /// @param _counts 'true' means already won
+    function setSpecialTreasureWinnerLimit(
         address[] memory _previousWinners,
-        bool[] memory _flags
-    ) external onlyAdmin(msg.sender) validArrayLength(_previousWinners.length, _flags.length) {
-        for (uint256 index = 0; index < _flags.length; index = _uncheckedInc(index)) {
-            specialTreasureWinners[_previousWinners[index]] = _flags[index];
+        uint256[] memory _counts
+    ) external onlyAdmin(msg.sender) validArrayLength(_previousWinners.length, _counts.length) {
+        for (uint256 index = 0; index < _previousWinners.length; index = _uncheckedInc(index)) {
+            specialTreasureWinnersLimit[_previousWinners[index]] = _counts[index];
         }
+    }
+
+    /// @notice update max limit for special treasure
+    /// @param _maxSpecialTreasureLimit List of addresses that have won Special Treasure
+    function updateMaxSpecialTreasureLimit(
+        uint256 _maxSpecialTreasureLimit
+    ) external onlyAdmin(msg.sender) {
+        maxSpecialTreasureLimit = _maxSpecialTreasureLimit;
     }
 }

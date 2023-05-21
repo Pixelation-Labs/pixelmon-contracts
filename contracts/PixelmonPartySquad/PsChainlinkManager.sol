@@ -150,15 +150,19 @@ contract PsChainlinkManager is EIP712, Ownable, VRFConsumerBaseV2 {
         chainLinkSubscriptionId = _chainLinkSubscriptionId;
     }
 
+   uint256 reqId;
     /// @notice Generate random number from Chainlink
     /// @param _weekNumber Number of the week
     /// @return requestId Chainlink requestId
-    function generateChainLinkRandomNumbers(uint256 _weekNumber) external returns (uint256 requestId) {
+    function generateChainLinkRandomNumbers(
+        uint256 _weekNumber
+    ) external returns (uint256 requestId) {
         if (msg.sender != partySquadContractAddress) {
             revert NotAllowedToCall();
         }
+        requests[reqId] = Request({randomWords: new uint256[](0), exists: true, fulfilled: false, weekNumber: _weekNumber});
         requestId = COORDINATOR.requestRandomWords(keyHash, chainLinkSubscriptionId, requestConfirmations, callbackGasLimit, Random_Number_Count);
-        requests[requestId] = Request({randomWords: new uint256[](0), exists: true, fulfilled: false, weekNumber: _weekNumber});
+        //requests[requestId] = Request({randomWords: new uint256[](0), exists: true, fulfilled: false, weekNumber: _weekNumber});
         requestIds.push(requestId);
         lastRequestId = requestId;
         return requestId;
