@@ -114,9 +114,9 @@ contract PxPartySquad is PsWeekManager, ReentrancyGuard {
         treasures[_index] = _treasure;
     }
 
-    /// @notice Add Special Treasures treasure to the smart contract
-    /// @dev Can only be called by administrators
-    /// @param _treasure Special Treasures information according to Treasure struct
+    /// @notice Add Special treasure to the smart contract
+    /// @dev Can only be called by adminis
+    /// @param _treasure Special Treasure information according to Treasure struct
     function addSpecialTreasure(Treasure memory _treasure) external onlyAdmin(msg.sender) validTreasure(_treasure) {
         _treasure.claimedToken = 0;
         specialTreasure = _treasure;
@@ -300,6 +300,7 @@ contract PxPartySquad is PsWeekManager, ReentrancyGuard {
     /// @param _weekNumber The week number
     /// @param _treasureindexes The index of the treasure in 'treasures' mapping variable
     /// @param _treasureCounts Amount of treasure that will be available to claim during the week
+    /// @param _specialTreasuresCount Amount of special treasure that will be available to claim during the week
     function setWeeklyTreasureDistribution(
         uint256 _weekNumber,
         uint8[] memory _treasureindexes,

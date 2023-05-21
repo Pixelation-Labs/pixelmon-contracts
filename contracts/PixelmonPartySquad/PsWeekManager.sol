@@ -74,8 +74,8 @@ contract PsWeekManager is Ownable, PxUtils {
     /// @param remainingSupply The remaining treasure supply that hasn't been claimed during
     ///        the week. This supply is the sum of every treasure supply excluding Special Treasures
     /// @param treasureCount How many treasure option is available
-    /// @param specialTreasureCount How many Special Treasures is available in a week
-    /// @param specialTreasuresCount How many Special Treasures treasure that has not been claimed
+    /// @param specialTreasureCount How many Special Treasures are available in a week
+    /// @param specialTreasuresCount How many Special Treasures treasure that have not been claimed
     /// @param specialTreasureWinners Winners of Special Treasures
     /// @param specialTreasureWinnerMap Map that contains address of the Special Treasures winner.
     ///        Map is used to easily validate whether the address is a winner rather than
