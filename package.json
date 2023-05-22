@@ -17,6 +17,7 @@
     "deploy:pixelmon:evolution:contract:mainnet": "npx hardhat run ./scripts/PixelmonEvolution/deploy.Contract.js --network mainnet",
     "deploy:prototype:contract:goerli": "npx hardhat run ./scripts/PrototypeToken/deploy.contract.js --network goerli",
     "test:coverage:revised:pixelmon:trainer:adventure": "npx hardhat coverage --network hardhat --testfiles \"test/revised-pixelmon-trainer-adventure/*.js\"",
+    "test:coverage:evolution3:serum": "npx hardhat coverage --network hardhat --testfiles \"test/Evolution3Serum/*.js\"",
     "test:coverage:evolution": "npx hardhat coverage --network hardhat --testfiles \"test/pixelmon-evolution/*.js\"",
     "publish:contract:mainnet": "npx hardhat verify --network mainnet",
     "deploy:pxTrainerAdventureContract:goerli": "npx hardhat run ./scripts/PxTrainerAdventure/deploy.PxTrainerAdventure.js --network goerli",
@@ -31,7 +32,11 @@
     "test:revised:pixelmon:trainer:adventure": "npx hardhat test --network hardhat ./test/revised-pixelmon-trainer-adventure/deploy.js",
     "rescue:trainer:sepolia": "npx hardhat --network sepolia run ./scripts/PixelmonStaking/staking/rescue.token.js",
     "rescue:trainer:goerli": "npx hardhat --network goerli run ./scripts/PixelmonStaking/staking/rescue.token.js",
-    "rescue:trainer:mainnet": "npx hardhat --network mainnet run ./scripts/PixelmonStaking/staking/rescue.token.js"
+    "rescue:trainer:mainnet": "npx hardhat --network mainnet run ./scripts/PixelmonStaking/staking/rescue.token.js",
+    "deploy:e3serum:goerli": "npx hardhat run ./scripts/Evolution3Serum/deploy.contract.js --network goerli",
+    "deploy:e3serum:mainnet": "npx hardhat run ./scripts/Evolution3Serum/deploy.contract.js --network mainnet",
+    "deploy:e3serum:hardhat": "npx hardhat run ./scripts/Evolution3Serum/deploy.contract.js --network hardhat",
+    "deploy:e3serum:sepolia": "npx hardhat run ./scripts/Evolution3Serum/deploy.contract.js --network sepolia"
   },
   "dependencies": {
     "@chainlink/contracts": "^0.5.1",
@@ -50,6 +55,7 @@
     "hardhat-gas-reporter": "^1.0.8",
     "keccak256": "^1.0.6",
     "merkletreejs": "^0.2.32",
+    "operator-filter-registry": "^1.4.1",
     "solidity-coverage": "^0.7.21"
   },
   "devDependencies": {
