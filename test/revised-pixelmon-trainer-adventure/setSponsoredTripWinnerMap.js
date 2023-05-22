@@ -23,7 +23,7 @@ const setSponsoredTripWinnerMap = async (contract, testUsers) => {
             await contract.connect(admin).setSponsoredTripWinnerMap(winnerList, winnerFlag);
 
             winnerList.forEach(async (winnerAddress, index) => {
-                let isPreviousWinner = await contract.sponsoredTripWinners(winnerAddress);
+                let isPreviousWinner = await contract.sponsoredTripWinnersLimit(winnerAddress);
                 expect(isPreviousWinner).to.equal(winnerFlag[index]);
             });
 
@@ -35,7 +35,7 @@ const setSponsoredTripWinnerMap = async (contract, testUsers) => {
             await contract.connect(admin).setSponsoredTripWinnerMap(winnerList, winnerFlag);
 
             winnerList.forEach(async (winnerAddress, index) => {
-                let isPreviousWinner = await contract.sponsoredTripWinners(winnerAddress);
+                let isPreviousWinner = await contract.sponsoredTripWinnersLimit(winnerAddress);
                 expect(isPreviousWinner).to.equal(winnerFlag[index]);
             });
 

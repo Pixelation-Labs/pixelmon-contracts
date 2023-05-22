@@ -8,18 +8,13 @@ const {
     WinnerUpdationDuration
 } = require("./constant");
 
-const setWeeklySponsoredTripDistribution = async(contract, testUsers, blockTimestamp) => {
+const setWeeklySpecialTreasureDistribution = async(contract, testUsers, blockTimestamp) => {
     describe(path.basename(__filename, ".js"), () => {
         const [_,admin] = testUsers;
 
         it("Should set weekly sponsored trip distribution", async() => {
             let weekNumber = 1;
             const count = 2
-
-            // await contract.connect(admin).setWeeklySponsoredTripDistribution(
-            //     weekNumber,
-            //     count
-            // )
 
             const weekData = await contract.weekInfos(weekNumber);
             expect(Number(weekData.startTimeStamp)).to.be.equal(blockTimestamp);
@@ -34,4 +29,4 @@ const setWeeklySponsoredTripDistribution = async(contract, testUsers, blockTimes
     });
 }
 
-module.exports = {setWeeklySponsoredTripDistribution}
+module.exports = {setWeeklySpecialTreasureDistribution}

@@ -38,7 +38,7 @@ const updateWeeklyWinners = async(contract, testUsers) => {
             await expect(contract.connect(moderator).updateWeeklyWinners(
                 weekNumber,
                 winners,
-                [2,2,3]
+                [3,3,3]
             )).to.be.revertedWith("Invalid Treasure Amount");
 
             await expect(contract.connect(moderator).updateWeeklyWinners(
@@ -46,7 +46,6 @@ const updateWeeklyWinners = async(contract, testUsers) => {
                 winners,
                 prizeAmount
             )).to.emit(contract, WeeklyWinnersSet);
-
             await expect(contract.connect(moderator).updateWeeklyWinners(
                 weekNumber,
                 winners,
@@ -54,10 +53,8 @@ const updateWeeklyWinners = async(contract, testUsers) => {
             )).to.emit(contract, WeeklyWinnersSet);
 
             const weekData = await contract.getWeekInfo(weekNumber);
-            for(let winner of weekData.tripWinners) {
-                // Should return false since the selected winner
-                // is the one who has not claimed/owned Sponsored Trip
-               expect(await contract.sponsoredTripWinnersLimit(winner)).to.not.ok;
+            for(let winner of weekData.specialTreasureWinners) {
+                expect(await contract.specialTreasureWinnersLimit(winner)).to.equal(0);
             }
         })
 

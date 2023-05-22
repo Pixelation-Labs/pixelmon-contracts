@@ -38,33 +38,33 @@ const claimTreasure = async (contract, testUsers, collection, blockTimestamp, cr
             let claimIndex = 2;
             for (let winner of winners.slice(0, 2)) {
                 let signature = await createSignature(weekNumber, count, winner.address, signer, pxTrainerAdventureSignature);
-                expect(Number(await collection.sponsoredTrip.balanceOf(winner.address, 1))).to.be.equal(0);
+                expect(Number(await collection.specialTreasure.balanceOf(winner.address, 1))).to.be.equal(0);
                 await expect(contract.connect(winner).claimTreasure(weekNumber, signature))
                     .to.emit(contract, TreasureTransferred).withArgs(
                         weekNumber,
                         winner.address,
-                        collection.sponsoredTrip.address,
+                        collection.specialTreasure.address,
                         1,
                         await contract.ERC_1155_TYPE()
                     );
-                expect(Number(await collection.sponsoredTrip.balanceOf(winner.address, 1))).to.be.equal(1);
+                expect(Number(await collection.specialTreasure.balanceOf(winner.address, 1))).to.be.equal(1);
                 claimIndex += 2;
             }
         });
 
-        it("Address in sponsoredTripWinners map should not get Sponsored Trip prize", async () => {
+        it("Address in specialTreasureWinners map should not get Sponsored Trip prize", async () => {
             for (let token of Object.values(collection)) {
                 token.connect(admin).setApprovalForAll(contract.address, true);
             }
 
             const winner = winners[2];
             let signature = await createSignature(weekNumber, 0, winner.address, signer, pxTrainerAdventureSignature);
-            expect(await contract.sponsoredTripWinnersLimit(winner.address)).to.be.ok;
-            expect(Number(await collection.sponsoredTrip.balanceOf(winner.address, 1))).to.be.equal(0);
+            expect(await contract.specialTreasureWinnersLimit(winner.address)).to.be.ok;
+            expect(Number(await collection.specialTreasure.balanceOf(winner.address, 1))).to.be.equal(0);
             await expect(contract.connect(winner).claimTreasure(weekNumber, signature)).to.emit(contract, TreasureTransferred);
             signature = await createSignature(weekNumber, 1, winner.address, signer, pxTrainerAdventureSignature);
             await expect(contract.connect(winner).claimTreasure(weekNumber, signature)).to.emit(contract, TreasureTransferred);
-            expect(Number(await collection.sponsoredTrip.balanceOf(winner.address, 1))).to.be.equal(0);
+            expect(Number(await collection.specialTreasure.balanceOf(winner.address, 1))).to.be.equal(0);
             expect(Number(await collection.trainerGear.balanceOf(winner.address, 1))).to.be.equal(1);
             expect(Number(await collection.trainer.balanceOf(winner.address))).to.be.equal(1);
             expect(Number(await contract.getWeeklyClaimedCount(weekNumber, winner.address))).to.be.equal(2);
@@ -107,15 +107,8 @@ const claimTreasure = async (contract, testUsers, collection, blockTimestamp, cr
                 count,
                 2
             );
-
-
+            
             time.increase(PrizeUpdationDuration);
-
-            // await expect(contract.connect(moderator).updateWeeklyWinners(
-            //     weekNumber,
-            //     winners.map((wallet) => wallet.address),
-            //     prizeAmount
-            // )).to.be.revertedWithCustomError(contract, NotEnoughWinnersForSponsoredTrip);
 
             winners = testUsers.slice(4, 7);
             const winnerAddress = winners.map((wallet) => wallet.address);
