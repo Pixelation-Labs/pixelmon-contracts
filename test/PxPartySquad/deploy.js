@@ -75,10 +75,10 @@ const createSignature = async (weekNumber, claimIndex, walletAddress, signer, co
 
     // For goerli network it will be 5, for mainnet it will be 1 
     const chainId = 31337;
-    const SIGNING_DOMAIN_NAME = "Pixelmon-Trainer-Adventure";
+    const SIGNING_DOMAIN_NAME = "Pixelmon-Party-Squad";
     const SIGNING_DOMAIN_VERSION = "1";
     const types = {
-        TrainerAdventureSignature: [
+        PartySquadSignature: [
             { name: "weekNumber", type: "uint256" },
             { name: "claimIndex", type: "uint256" },
             { name: "walletAddress", type: "address" }

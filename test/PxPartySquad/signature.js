@@ -14,10 +14,10 @@ describe("Signature test", function () {
     
         // For goerli network it will be 5, for mainnet it will be 1 
         const chainId = 31337;
-        const SIGNING_DOMAIN_NAME = "Pixelmon-Trainer-Adventure";
+        const SIGNING_DOMAIN_NAME = "Pixelmon-Party-Squad";
         const SIGNING_DOMAIN_VERSION = "1";
         const types = {
-            TrainerAdventureSignature: [
+            PartySquadSignature: [
                 { name: "weekNumber", type: "uint256" },
                 { name: "claimIndex", type: "uint256" },
                 { name: "walletAddress", type: "address" }
@@ -49,8 +49,8 @@ describe("Signature test", function () {
         const _subscriptionId = 1;
         const _keyHash = "0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15";
 
-        const PxChainlinkManager = await hre.ethers.getContractFactory("PxChainlinkManager");
-        pxChainlinkManager = await PxChainlinkManager.deploy(signer.address, _vrfCoordinator, _subscriptionId, _keyHash);
+        const PsChainlinkManager = await hre.ethers.getContractFactory("PsChainlinkManager");
+        pxChainlinkManager = await PsChainlinkManager.deploy(signer.address, _vrfCoordinator, _subscriptionId, _keyHash);
         await pxChainlinkManager.deployed();
 
         let user = testUsers[5];

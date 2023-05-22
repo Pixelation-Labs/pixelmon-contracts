@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Unlicense
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.16;
 
 interface IPsChainlinkManager {
@@ -22,5 +22,6 @@ interface IPsChainlinkManager {
 
     /// @notice Get weekly random numbers for specific week
     /// @param _weekNumber The number of the week
+    /// @return randomNumbers weekly random numbers
     function getWeeklyRandomNumbers(uint256 _weekNumber) external view returns (uint256[] memory randomNumbers);
 }

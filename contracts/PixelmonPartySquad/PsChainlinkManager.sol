@@ -1,7 +1,7 @@
-// SPDX-License-Identifier: Unlicense
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.16;
 
-/// @title Pixelmon party Squad Smart Contract
+/// @title Pixelmon Party Squad Smart Contract
 /// @author LiquidX
 /// @notice This smart contract provides configuration for the party squad event on Pixelmon
 import "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
@@ -13,7 +13,7 @@ error NotAllowedToCall();
 
 contract PsChainlinkManager is EIP712, Ownable, VRFConsumerBaseV2 {
     /// @dev Signing domain for the purpose of creating signature
-    string public constant SIGNING_DOMAIN = "Pixelmon-Trainer-Adventure";
+    string public constant SIGNING_DOMAIN = "Pixelmon-Party-Squad";
     /// @dev signature version for creating and verifying signature
     string public constant SIGNATURE_VERSION = "1";
 
@@ -47,9 +47,9 @@ contract PsChainlinkManager is EIP712, Ownable, VRFConsumerBaseV2 {
     /// @notice address of party squad smart contract
     address public partySquadContractAddress;
 
-    // @notice The maximum gas price to pay for a request to Chainlink in wei.
-    ///   keyHash The gas lane to use, which specifies the maximum gas price to bump to.
-    ///   More https://docs.chain.link/docs/vrf/v2/subscription/supported-networks/#configurations
+    /// @notice The maximum gas price to pay for a request to Chainlink in wei.
+    /// keyHash The gas lane to use, which specifies the maximum gas price to bump to.
+    /// More https://docs.chain.link/docs/vrf/v2/subscription/supported-networks/#configurations
     bytes32 public keyHash;
     /// @notice How many confirmations the Chainlink node should wait before responding
     uint16 requestConfirmations = 3;
@@ -90,7 +90,7 @@ contract PsChainlinkManager is EIP712, Ownable, VRFConsumerBaseV2 {
 
     /// @notice Sets Signer wallet address
     /// @dev This function can only be executed by the contract owner
-    /// @param signer Signer wallet address for signature verifition
+    /// @param signer Signer wallet address for signature verification
     function setSignerAddress(address signer) external onlyOwner {
         SIGNER = signer;
     }
@@ -110,7 +110,7 @@ contract PsChainlinkManager is EIP712, Ownable, VRFConsumerBaseV2 {
         bytes32 digest = _hashTypedDataV4(
             keccak256(
                 abi.encode(
-                    keccak256("TrainerAdventureSignature(uint256 weekNumber,uint256 claimIndex,address walletAddress)"),
+                    keccak256("PartySquadSignature(uint256 weekNumber,uint256 claimIndex,address walletAddress)"),
                     weekNumber,
                     claimIndex,
                     walletAddress
@@ -150,7 +150,7 @@ contract PsChainlinkManager is EIP712, Ownable, VRFConsumerBaseV2 {
         chainLinkSubscriptionId = _chainLinkSubscriptionId;
     }
 
-   /// @notice Generate random number from Chainlink
+    /// @notice Generate random number from Chainlink
     /// @param _weekNumber Number of the week
     /// @return requestId Chainlink requestId
     function generateChainLinkRandomNumbers(uint256 _weekNumber) external returns (uint256 requestId) {
@@ -177,6 +177,7 @@ contract PsChainlinkManager is EIP712, Ownable, VRFConsumerBaseV2 {
 
     /// @notice Get weekly random numbers for specific week
     /// @param _weekNumber The number of the week
+    /// @return randomNumbers weekly random numbers
     function getWeeklyRandomNumbers(uint256 _weekNumber) external view returns (uint256[] memory randomNumbers) {
         return weeklyRandomNumbers[_weekNumber].randomNumbers;
     }

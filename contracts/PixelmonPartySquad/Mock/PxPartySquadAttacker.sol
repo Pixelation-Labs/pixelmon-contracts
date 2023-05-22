@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/interfaces/IERC721Receiver.sol";
 import "@openzeppelin/contracts/interfaces/IERC1155Receiver.sol";
 import "../PxPartySquad.sol";
 
-    error RejectCall();
+error RejectCall();
 
 contract PxPartySquadAttacker is IERC1155Receiver {
 

@@ -1,9 +1,9 @@
-// SPDX-License-Identifier: Unlicense
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.16;
 
-/// @title Pixelmon Trainer Adventure Smart Contract
+/// @title Pixelmon Party Squad Smart Contract
 /// @author LiquidX
-/// @notice This smart contract provides configuration for the Trainer Adventure event on Pixelmon
+/// @notice This smart contract provides configuration for the Party Squad event on Pixelmon
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./IPsChainlinkManager.sol";

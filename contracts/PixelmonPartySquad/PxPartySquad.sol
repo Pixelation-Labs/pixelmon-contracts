@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Unlicense
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.16;
 
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
@@ -36,7 +36,6 @@ contract PxPartySquad is PsWeekManager, ReentrancyGuard {
     Treasure public specialTreasure;
     /// @notice List of addresses who have won Special Treasures 
     /// @custom:key wallet address
-    /// @custom:value 'true' means already owns Special Treasures
     mapping(address => uint256) public specialTreasureWinnersLimit;
 
     /// @notice Check whether both array input has the same length or not
