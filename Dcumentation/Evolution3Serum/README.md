@@ -124,7 +124,7 @@ To deploy this smart contract in the Mainnet or in the Goerli test net the follo
 
 ## Cost Supply Requirements
 1. The private key of a wallet address that has enough ethers for deploying claim gift smart contracts.
-2. Estimated cost: [Not Completed Yet][Estimated Cost for Smart Contract]()
+2. Estimated cost: [Estimated Cost for Smart Contract](https://docs.google.com/spreadsheets/d/1YkUcfVHPe8nCuYFyqUJJtdOilcwPghjuLXji4vxWRLs/edit?usp=sharing)
 
 ## Smart Contract Deployment Steps
 1. Download the smart contract from [git repository](https://github.com/Pixelation-Labs/pixelmon-contracts).  
