@@ -13,10 +13,10 @@ const createSignature = async (weekNumber, claimIndex, walletAddress, signer, co
 
   // For goerli network it will be 5, for mainnet it will be 1 
   const chainId = 5;
-  const SIGNING_DOMAIN_NAME = "Pixelmon-Trainer-Adventure";
+  const SIGNING_DOMAIN_NAME = "Pixelmon-Party-Squad";
   const SIGNING_DOMAIN_VERSION = "1";
   const types = {
-      TrainerAdventureSignature: [
+      PartySquadSignature: [
           { name: "weekNumber", type: "uint256" },
           { name: "claimIndex", type: "uint256" },
           { name: "walletAddress", type: "address" },
@@ -36,11 +36,11 @@ const createSignature = async (weekNumber, claimIndex, walletAddress, signer, co
 
 async function main() {
   
-  const PxTrainerAdventureSignature = await hre.ethers.getContractFactory("PxChainlinkManager");
-  const pxTrainerAdventureSignature = PxTrainerAdventureSignature.attach('0x6E66d39605F51C988BaDa97d9694d48a88Cc2d54');
+  const PsTrainerAdventureSignature = await hre.ethers.getContractFactory("PsChainlinkManager");
+  const psTrainerAdventureSignature = PsTrainerAdventureSignature.attach('0x6E66d39605F51C988BaDa97d9694d48a88Cc2d54');
   const accounts = await hre.ethers.getSigners();
   const deployer = accounts[0];
-  await createSignature(1, 7, "0xbf8B59b334AC1a8C230952a53BEfb85e7E91f2B8", deployer, pxTrainerAdventureSignature);
+  await createSignature(1, 7, "0xbf8B59b334AC1a8C230952a53BEfb85e7E91f2B8", deployer, psTrainerAdventureSignature);
 }
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.

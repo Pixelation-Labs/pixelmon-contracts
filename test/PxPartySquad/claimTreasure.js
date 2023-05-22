@@ -107,15 +107,8 @@ const claimTreasure = async (contract, testUsers, collection, blockTimestamp, cr
                 count,
                 2
             );
-
-
+            
             time.increase(PrizeUpdationDuration);
-
-            // await expect(contract.connect(moderator).updateWeeklyWinners(
-            //     weekNumber,
-            //     winners.map((wallet) => wallet.address),
-            //     prizeAmount
-            // )).to.be.revertedWithCustomError(contract, NotEnoughWinnersForSponsoredTrip);
 
             winners = testUsers.slice(4, 7);
             const winnerAddress = winners.map((wallet) => wallet.address);

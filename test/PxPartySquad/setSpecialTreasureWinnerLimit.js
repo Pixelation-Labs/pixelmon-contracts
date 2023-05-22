@@ -13,9 +13,10 @@ const setSpecialTreasureWinnerLimit = async (contract, testUsers) => {
             await contract.setAdminWallet(admin.address, true);
             let isAdmin = await contract.adminWallets(admin.address);
             expect(isAdmin).to.equal(true);
-            await contract.connect(admin).updateMaxSpecialTreasureLimit(5);
-            let treasureLimit = await contract.maxSpecialTreasureLimit(); 
-            expect(treasureLimit).to.equal(5);
+            await contract.connect(admin).updateMaxSpecialTreasureLimit(3);
+            expect(await contract.maxSpecialTreasureLimit()).to.equal(3);
+            await contract.connect(admin).updateMaxSpecialTreasureLimit(1);
+            expect(await contract.maxSpecialTreasureLimit()).to.equal(1);
         });
         it("setSpecialTreasureWinnerLimit as Admin", async () => {
             await contract.setAdminWallet(admin.address, true);

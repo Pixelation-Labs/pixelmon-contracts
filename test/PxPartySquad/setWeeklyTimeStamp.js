@@ -35,17 +35,6 @@ const setWeeklyTimeStamp = async (contract, testUsers, blockTimestamp) => {
             expect(endTimestamp).to.be.equal(newBlockTimestamp+WeeklyDuration-1);
         });
 
-        // it("Each week should have different timestamps", async () => {
-        //     await new Promise((resolve) => setTimeout(resolve,1000))
-        //     // Set timestamp for Week 3 since the totalWeek will be incremented when this method is called
-        //     await expect(contract.connect(admin).setWeeklyTimeStamp(
-        //         weekNumber,
-        //         blockTimestamp,
-        //         PrizeUpdationDuration,
-        //         WinnerUpdationDuration,
-        //         WeeklyDuration)).to.be.reverted;
-        // })
-
         it("Only admin can set weekly timestamp", async () => {
             await expect(contract.setWeeklyTimeStamp(
                 weekNumber,

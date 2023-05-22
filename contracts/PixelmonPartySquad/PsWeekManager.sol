@@ -75,7 +75,6 @@ contract PsWeekManager is Ownable, PxUtils {
     ///        the week. This supply is the sum of every treasure supply excluding Special Treasures
     /// @param treasureCount How many treasure option is available
     /// @param specialTreasureCount How many Special Treasures are available in a week
-    /// @param specialTreasuresCount How many Special Treasures treasure that have not been claimed
     /// @param specialTreasureWinners Winners of Special Treasures
     /// @param specialTreasureWinnerMap Map that contains address of the Special Treasures winner.
     ///        Map is used to easily validate whether the address is a winner rather than
@@ -100,6 +99,7 @@ contract PsWeekManager is Ownable, PxUtils {
     /// @notice Struct object for week information
     /// @dev This struct is only used as return type for getWeekInfo method
     /// @param specialTreasureWinners Winner of Special Treasures
+    /// @param randomNumbers random numbers generated from chainlink
     struct WeekData {
         address[] specialTreasureWinners;
         uint256[] randomNumbers;

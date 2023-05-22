@@ -290,8 +290,6 @@ contract PxPartySquad is PsWeekManager, ReentrancyGuard {
             erc721Contract.transferFrom(vaultWalletAddress, msg.sender, _treasure.tokenIds[_treasure.claimedToken - 1]);
             emit TreasureTransferred(_weekNumber, msg.sender, _treasure.collectionAddress,_treasure.tokenIds[_treasure.claimedToken - 1] , _treasure.contractType);
         }
-
-        
     }
 
     /// @notice Set treasure distributions for a week
@@ -371,7 +369,7 @@ contract PxPartySquad is PsWeekManager, ReentrancyGuard {
 
     /// @notice Add a list of wallet addresses that have won Special Treasure
     /// @param _previousWinners List of addresses that have won Special Treasure
-    /// @param _counts 'true' means already won
+    /// @param _counts number of special treasures have already won
     function setSpecialTreasureWinnerLimit(
         address[] memory _previousWinners,
         uint256[] memory _counts

@@ -48,19 +48,6 @@ const addTreasure = async (contract, testUsers, collection) => {
             expect(Number(treasureData.contractType)).to.equal(treasure.contractType);
             expect(Number(treasureData.treasureType)).to.equal(treasure.treasureType);
 
-            // Note: negative test
-            // treasure = {
-            //     collectionAddress: owner.address,
-            //     tokenId: 1,
-            //     tokenIds: [],
-            //     claimedToken: 1,
-            //     contractType: 1,
-            //     treasureType: 1
-            // };
-
-            // await expect(contract.connect(admin).addTreasures(treasure))
-            //     .to.be.revertedWithCustomError(contract, "InvalidInput");
-
             treasure = {
                 collectionAddress: owner.address,
                 tokenId: 1,

@@ -13,7 +13,7 @@ const { addSpecialTreasure } = require("./addSpecialTreasure");
 const { setSpecialTreasureWinnerLimit } = require("./setSpecialTreasureWinnerLimit");
 const { testSignature } = require("./signatureTest");
 const { setWeeklyTreasureDistribution } = require("./setWeeklyTreasureDistribution");
-const { setWeeklySponsoredTripDistribution } = require("./setWeeklySponsoredTripDistribution");
+const { setWeeklySpecialTreasureDistribution } = require("./setWeeklySpecialTreasureDistribution");
 const { updateWeeklyWinners } = require("./updateWeeklyWinners");
 const { claimTreasure } = require("./claimTreasure");
 const { chainLinkMockTest } = require("./chainlinkMockTest");
@@ -151,7 +151,7 @@ describe(`${contractName} contract`, () => {
         await addSpecialTreasure(contract, testUsers, collection);
         await setSpecialTreasureWinnerLimit(contract, testUsers);
         await setWeeklyTreasureDistribution(contract, testUsers, blockTimestamp);
-        await setWeeklySponsoredTripDistribution(contract, testUsers, blockTimestamp);
+        await setWeeklySpecialTreasureDistribution(contract, testUsers, blockTimestamp);
         await updateWeeklyWinners(contract, testUsers);
         await psChainlinkManager.connect(testUsers[0]).setPartySquadContractAddress(contract.address);
         await chainLinkMockTest(contract, testUsers);

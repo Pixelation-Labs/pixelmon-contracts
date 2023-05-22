@@ -8,7 +8,7 @@ const {
     WinnerUpdationDuration
 } = require("./constant");
 
-const setWeeklySponsoredTripDistribution = async(contract, testUsers, blockTimestamp) => {
+const setWeeklySpecialTreasureDistribution = async(contract, testUsers, blockTimestamp) => {
     describe(path.basename(__filename, ".js"), () => {
         const [_,admin] = testUsers;
 
@@ -16,11 +16,7 @@ const setWeeklySponsoredTripDistribution = async(contract, testUsers, blockTimes
             let weekNumber = 1;
             const count = 2
 
-            // await contract.connect(admin).setWeeklySponsoredTripDistribution(
-            //     weekNumber,
-            //     count
-            // )
-
+            
             const weekData = await contract.weekInfos(weekNumber);
             expect(Number(weekData.startTimeStamp)).to.be.equal(blockTimestamp);
             expect(Number(weekData.ticketDrawTimeStamp)).to.be.equal(blockTimestamp+PrizeUpdationDuration);
@@ -28,10 +24,10 @@ const setWeeklySponsoredTripDistribution = async(contract, testUsers, blockTimes
             expect(Number(weekData.endTimeStamp)).to.be.equal(blockTimestamp+WeeklyDuration-1);
             expect(Number(weekData.remainingSupply)).to.be.equal(4);
             expect(Number(weekData.treasureCount)).to.be.equal(2);
-            expect(Number(weekData.sponsoredTripsCount)).to.be.equal(count);
-            expect(Number(weekData.availabletripsCount)).to.be.equal(count);
+            expect(Number(weekData.specialTreasureCount)).to.be.equal(count);
+            expect(Number(weekData.availableSpecialTreasureCount)).to.be.equal(count);
         });
     });
 }
 
-module.exports = {setWeeklySponsoredTripDistribution}
+module.exports = {setWeeklySpecialTreasureDistribution}
