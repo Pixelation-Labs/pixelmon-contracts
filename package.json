@@ -36,12 +36,14 @@
     "deploy:PxPartySquadContract:goerli": "npx hardhat run ./scripts/PxPartySquad/deploy.PxPartySquad.js --network goerli",
     "deploy:PsChainlinkManagerContract:goerli": "npx hardhat run ./scripts/PxPartySquad/deploy.PsChainlinkManager.js --network goerli",
     "test:coverage:pxPartySquad": "npx hardhat coverage --network hardhat --testfiles \"test/PxPartySquad/*.js\"",
-    "deploy:PxPartySquadContract:mainnet": "npx hardhat run ./scripts/PxPartySquad/deploy.PxPartySquad.js --network goerli",
-    "deploy:PsChainlinkManagerContract:mainnet": "npx hardhat run ./scripts/PxPartySquad/deploy.PsChainlinkManager.js --network goerli",
+    "deploy:PxPartySquadContract:mainnet": "npx hardhat run ./scripts/PxPartySquad/deploy.PxPartySquad.js --network mainnet",
+    "deploy:PsChainlinkManagerContract:mainnet": "npx hardhat run ./scripts/PxPartySquad/deploy.PsChainlinkManager.js --network mainnet",
     "deploy:e3serum:goerli": "npx hardhat run ./scripts/Evolution3Serum/deploy.contract.js --network goerli",
     "deploy:e3serum:mainnet": "npx hardhat run ./scripts/Evolution3Serum/deploy.contract.js --network mainnet",
     "deploy:e3serum:hardhat": "npx hardhat run ./scripts/Evolution3Serum/deploy.contract.js --network hardhat",
-    "deploy:e3serum:sepolia": "npx hardhat run ./scripts/Evolution3Serum/deploy.contract.js --network sepolia"
+    "deploy:e3serum:sepolia": "npx hardhat run ./scripts/Evolution3Serum/deploy.contract.js --network sepolia",
+    "set:treasure:distribution:goerli": "npx hardhat --network goerli run scripts/PxPartySquad/setWeeklyTreasureDistribution.js",
+    "set:treasure:distribution:mainnet": "npx hardhat --network mainnet run scripts/PxPartySquad/setWeeklyTreasureDistribution.js"
   },
   "dependencies": {
     "@chainlink/contracts": "^0.5.1",
