@@ -16,4 +16,4 @@ TREASURE_COUNTS=[10]
 SPECIAL_TREASURE_AMOUNT=0
 ```
 7. Compile code with `yarn compile`
-8. Run `set:treasure:distribution:mainnet`
+8. Run `yarn set:treasure:distribution:mainnet`
